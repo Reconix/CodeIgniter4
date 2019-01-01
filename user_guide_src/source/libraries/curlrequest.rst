@@ -6,6 +6,10 @@ The ``CURLRequest`` class is a lightweight HTTP client based on CURL that allows
 web sites and servers. It can be used to get the contents of a Google search, retrieve a web page or image,
 or communicate with an API, among many other things.
 
+.. contents::
+    :local:
+    :depth: 2
+
 This class is modelled after the `Guzzle HTTP Client <http://docs.guzzlephp.org/en/latest/>`_ library since
 it is one of the more widely used libraries. Where possible, the syntax has been kept the same so that if
 your application needs something a little more powerful than what this library provides, you will have
@@ -50,7 +54,7 @@ Working with the Library
 ************************
 
 Working with CURL requests is simply a matter of creating the Request and getting a
-:doc:`Response object </libraries/response>` back. It is meant to handle the communications. After that
+:doc:`Response object </outgoing/response>` back. It is meant to handle the communications. After that
 you have complete control over how the information is handled.
 
 Making Requests
@@ -212,8 +216,6 @@ and functions the exact same way as the previous example. The value must be a st
 
 	$client->request('put', 'http://example.com', ['body' => $body]);
 
-
-
 cert
 ====
 
@@ -231,6 +233,15 @@ modify this value, you can do so by passing the amount of time in seconds with t
 You can pass 0 to wait indefinitely::
 
 	$response->request('GET', 'http://example.com', ['connect_timeout' => 0]);
+
+cookie
+======
+
+This specifies the filename that CURL should use to read cookie values from, and
+to save cookie values to. This is done using the CURL_COOKIEJAR and CURL_COOKIEFILE options.
+An example::
+
+	$response->request('GET', 'http://example.com', ['cookie' => WRITEPATH . 'CookieSaver.txt']);
 
 debug
 =====
@@ -324,7 +335,7 @@ has been disabled. Any files that you want to send must be passed as instances o
 
 	$post_data = [
 		'foo'      => 'bar',
-		'userfile' => new CURLFile('/path/to/file.txt')
+		'userfile' => new \CURLFile('/path/to/file.txt')
 	];
 
 .. note:: ``multipart`` cannot be used with the ``form_params`` option. You can only use one or the other. Use
@@ -338,7 +349,6 @@ You can pass along data to send as query string variables by passing an associat
 
 	// Send a GET request to /get?foo=bar
 	$client->request('GET', '/get', ['query' => ['foo' => 'bar']]);
-
 
 timeout
 =======

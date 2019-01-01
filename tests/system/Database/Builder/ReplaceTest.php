@@ -1,6 +1,6 @@
 <?php namespace Builder;
 
-use CodeIgniter\Database\MockConnection;
+use Tests\Support\Database\MockConnection;
 
 class ReplaceTest extends \CIUnitTestCase
 {
@@ -8,8 +8,10 @@ class ReplaceTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
-	public function setUp()
+	protected function setUp()
 	{
+		parent::setUp();
+
 		$this->db = new MockConnection([]);
 	}
 
@@ -17,14 +19,14 @@ class ReplaceTest extends \CIUnitTestCase
 
 	public function testSimpleReplace()
 	{
-	    $builder = $this->db->table('jobs');
+		$builder = $this->db->table('jobs');
 
-		$expected = "REPLACE INTO \"jobs\" (\"title\", \"name\", \"date\") VALUES (:title:, :name:, :date:)";
+		$expected = 'REPLACE INTO "jobs" ("title", "name", "date") VALUES (:title:, :name:, :date:)';
 
 		$data = [
 			'title' => 'My title',
 			'name'  => 'My Name',
-			'date'  => 'My date'
+			'date'  => 'My date',
 		];
 
 		$this->assertSame($expected, $builder->replace($data, true));
@@ -34,7 +36,7 @@ class ReplaceTest extends \CIUnitTestCase
 
 	public function testReplaceThrowsExceptionWithNoData()
 	{
-	    $builder = $this->db->table('jobs');
+		$builder = $this->db->table('jobs');
 
 		$this->expectException('\CodeIgniter\Database\Exceptions\DatabaseException');
 		$this->expectExceptionMessage('You must use the "set" method to update an entry.');
@@ -43,7 +45,5 @@ class ReplaceTest extends \CIUnitTestCase
 	}
 
 	//--------------------------------------------------------------------
-
-
 
 }

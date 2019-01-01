@@ -6,10 +6,11 @@ CodeIgniter makes working with files uploaded through a form much simpler and mo
 array directly. This extends the :doc:`File class </libraries/files>` and thus gains all of the features of that class.
 
 .. note:: This is not the same as the File Uploading class in previous versions of CodeIgniter. This provides a raw
-	interface to the uploaded files with a few small features. An uploader class will be present in the final release.
+	interface to the uploaded files with a few small features.
 
-.. contents:: Page Contents
-  :local:
+.. contents::
+    :local:
+    :depth: 2
 
 ===============
 Accessing Files
@@ -97,7 +98,6 @@ For get the file instance::
 
 	$file = $this->request->getFile('my-form.details.avatar');
 
-
 Multiple files
 ^^^^^^^^^^^^^^
 ::
@@ -119,10 +119,10 @@ In controller::
     }
 
 where the **images** is loop is from the form field name
-	
+
 If there are multiple files with the same name you can use ``getFile()`` ro retrieve every file individually::
 In controller::
-	
+
 	$file1 = $this->request->getFile('images.0');
 	$file2 = $this->request->getFile('images.1');
 
@@ -136,7 +136,7 @@ In controller::
 	$file1 = $this->request->getFile('my-form.details.avatars.0');
 	$file2 = $this->request->getFile('my-form.details.avatars.1');
 
-.. note:: using ``getFiles()`` is more appropriate 
+.. note:: using ``getFiles()`` is more appropriate
 
 =====================
 Working With the File
@@ -190,7 +190,6 @@ To get the full path of the temp file that was created during the upload, you ca
 
 	$tempfile = $file->getTempName();
 
-
 Other File Info
 ---------------
 
@@ -230,3 +229,34 @@ the ``hasMoved()`` method, which returns a boolean::
     {
         $file->move($path);
     }
+
+Moving an uploaded file can fail, with an HTTPException, under several circumstances:
+
+- the file has already been moved
+- the file did not upload successfully
+- the file move operation fails (eg. improper permissions)
+
+Store Files
+------------
+
+Each file can be moved to its new location with the aptly named ``store()`` method.
+
+With the simplest usage, a single file might be submitted like::
+
+	<input type="file" name="userfile" />
+
+By default, Upload files are saved in writable/uploads directory. the YYYYMMDD folder
+and random file name will be created. return a file path::
+
+	$path = $this->request->getFile('userfile')->store();
+
+You can specify directory to movethe file to as the first parameter.a new filename by
+passing it as thesecond parameter::
+
+	$path = $this->request->getFile('userfile')->store('head_img/', 'user_name.jpg');
+
+Moving an uploaded file can fail, with an HTTPException, under several circumstances:
+
+- the file has already been moved
+- the file did not upload successfully
+- the file move operation fails (eg. improper permissions)

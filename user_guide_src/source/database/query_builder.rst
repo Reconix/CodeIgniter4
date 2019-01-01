@@ -17,7 +17,7 @@ system.
 
 .. contents::
     :local:
-    :depth: 1
+    :depth: 2
 
 *************************
 Loading the Query Builder
@@ -144,7 +144,6 @@ include a second parameter to rename the resulting field.
 	$builder->selectMax('age', 'member_age');
 	$query = $builder->get(); // Produces: SELECT MAX(age) as member_age FROM mytable
 
-
 **$builder->selectMin()**
 
 Writes a "SELECT MIN(field)" portion for your query. As with
@@ -156,7 +155,6 @@ the resulting field.
 	$builder->selectMin('age');
 	$query = $builder->get(); // Produces: SELECT MIN(age) as age FROM mytable
 
-
 **$builder->selectAvg()**
 
 Writes a "SELECT AVG(field)" portion for your query. As with
@@ -167,7 +165,6 @@ the resulting field.
 
 	$builder->selectAvg('age');
 	$query = $builder->get(); // Produces: SELECT AVG(age) as age FROM mytable
-
 
 **$builder->selectSum()**
 
@@ -277,7 +274,6 @@ methods:
 		$where = "name='Joe' AND status='boss' OR status='active'";
 		$builder->where($where);
 
-
 ``$builder->where()`` accepts an optional third parameter. If you set it to
 FALSE, CodeIgniter will not try to protect your field or table names.
 
@@ -300,10 +296,9 @@ appropriate
 
 ::
 
-	$names = array('Frank', 'Todd', 'James');
+	$names = ['Frank', 'Todd', 'James'];
 	$builder->whereIn('username', $names);
 	// Produces: WHERE username IN ('Frank', 'Todd', 'James')
-
 
 **$builder->orWhereIn()**
 
@@ -312,7 +307,7 @@ appropriate
 
 ::
 
-	$names = array('Frank', 'Todd', 'James');
+	$names = ['Frank', 'Todd', 'James'];
 	$builder->orWhereIn('username', $names);
 	// Produces: OR username IN ('Frank', 'Todd', 'James')
 
@@ -323,10 +318,9 @@ AND if appropriate
 
 ::
 
-	$names = array('Frank', 'Todd', 'James');
+	$names = ['Frank', 'Todd', 'James'];
 	$builder->whereNotIn('username', $names);
 	// Produces: WHERE username NOT IN ('Frank', 'Todd', 'James')
-
 
 **$builder->orWhereNotIn()**
 
@@ -335,7 +329,7 @@ if appropriate
 
 ::
 
-	$names = array('Frank', 'Todd', 'James');
+	$names = ['Frank', 'Todd', 'James'];
 	$builder->orWhereNotIn('username', $names);
 	// Produces: OR username NOT IN ('Frank', 'Todd', 'James')
 
@@ -387,7 +381,6 @@ searches.
 		$builder->like($array);
 		// WHERE `title` LIKE '%match%' ESCAPE '!' AND  `page1` LIKE '%match%' ESCAPE '!' AND  `page2` LIKE '%match%' ESCAPE '!'
 
-
 **$builder->orLike()**
 
 This method is identical to the one above, except that multiple
@@ -420,8 +413,7 @@ Permits you to write the GROUP BY portion of your query::
 
 You can also pass an array of multiple values as well::
 
-	$builder->groupBy(array("title", "date"));  // Produces: GROUP BY title, date
-
+	$builder->groupBy(["title", "date"]);  // Produces: GROUP BY title, date
 
 **$builder->distinct()**
 
@@ -445,7 +437,6 @@ You can also pass an array of multiple values as well::
 	$builder->having(['title =' => 'My Title', 'id <' => $id]);
 	// Produces: HAVING title = 'My Title', id < 45
 
-
 If you are using a database that CodeIgniter escapes queries for, you
 can prevent escaping content by passing an optional third argument, and
 setting it to FALSE.
@@ -454,7 +445,6 @@ setting it to FALSE.
 
 	$builder->having('user_id',  45);  // Produces: HAVING `user_id` = 45 in some databases such as MySQL
 	$builder->having('user_id',  45, FALSE);  // Produces: HAVING user_id = 45
-
 
 **$builder->orHaving()**
 
@@ -521,29 +511,34 @@ The second parameter lets you set a result offset.
 
 	$builder->limit(10, 20);  // Produces: LIMIT 20, 10 (in MySQL.  Other databases have slightly different syntax)
 
+
 **$builder->countAllResults()**
 
 Permits you to determine the number of rows in a particular Query
 Builder query. Queries will accept Query Builder restrictors such as
 ``where()``, ``orWhere()``, ``like()``, ``orLike()``, etc. Example::
 
-	echo $builder->countAllResults('my_table');  // Produces an integer, like 25
+	echo $builder->countAllResults();  // Produces an integer, like 25
 	$builder->like('title', 'match');
 	$builder->from('my_table');
 	echo $builder->countAllResults(); // Produces an integer, like 17
 
 However, this method also resets any field values that you may have passed
 to ``select()``. If you need to keep them, you can pass ``FALSE`` as the
-second parameter::
+first parameter.
 
-	echo $builder->countAllResults('my_table', FALSE);
+	echo $builder->countAllResults(false); // Produces an integer, like 17
 
 **$builder->countAll()**
 
 Permits you to determine the number of rows in a particular table.
-Submit the table name in the first parameter. Example::
+Example::
 
-	echo $builder->countAll('my_table');  // Produces an integer, like 25
+	echo $builder->countAll();  // Produces an integer, like 25
+
+As is in countAllResult method, this method resets any field values that you may have passed
+to ``select()`` as well. If you need to keep them, you can pass ``FALSE`` as the
+first parameter.
 
 **************
 Query grouping
@@ -553,7 +548,7 @@ Query grouping allows you to create groups of WHERE clauses by enclosing them in
 you to create queries with complex WHERE clauses. Nested groups are supported. Example::
 
 	$builder->select('*')->from('my_table')
-		->group_start()
+		->groupStart()
 			->where('a', 'a')
 			->orGroupStart()
 				->where('b', 'b')
@@ -566,7 +561,7 @@ you to create queries with complex WHERE clauses. Nested groups are supported. E
 	// Generates:
 	// SELECT * FROM (`my_table`) WHERE ( `a` = 'a' OR ( `b` = 'b' AND `c` = 'c' ) ) AND `d` = 'd'
 
-.. note:: groups need to be balanced, make sure every group_start() is matched by a group_end().
+.. note:: groups need to be balanced, make sure every groupStart() is matched by a groupEnd().
 
 **$builder->groupStart()**
 
@@ -598,11 +593,11 @@ Generates an insert string based on the data you supply, and runs the
 query. You can either pass an **array** or an **object** to the
 function. Here is an example using an array::
 
-	$data = array(
+	$data = [
 		'title' => 'My title',
 		'name'  => 'My Name',
 		'date'  => 'My date'
-	);
+	];
 
 	$builder->insert($data);
 	// Produces: INSERT INTO mytable (title, name, date) VALUES ('My title', 'My name', 'My date')
@@ -634,11 +629,11 @@ Compiles the insertion query just like $builder->insert() but does not
 
 Example::
 
-	$data = array(
+	$data = [
 		'title' => 'My title',
 		'name'  => 'My Name',
 		'date'  => 'My date'
-	);
+	];
 
 	$sql = $builder->set($data)->getCompiledInsert('mytable');
 	echo $sql;
@@ -670,18 +665,18 @@ Generates an insert string based on the data you supply, and runs the
 query. You can either pass an **array** or an **object** to the
 function. Here is an example using an array::
 
-	$data = array(
-		array(
+	$data = [
+		[
 			'title' => 'My title',
 			'name'  => 'My Name',
 			'date'  => 'My date'
-		),
-		array(
+		],
+		[
 			'title' => 'Another title',
 			'name'  => 'Another Name',
 			'date'  => 'Another date'
-		)
-	);
+		]
+	];
 
 	$builder->insertBatch($data);
 	// Produces: INSERT INTO mytable (title, name, date) VALUES ('My title', 'My name', 'My date'),  ('Another title', 'Another name', 'Another date')
@@ -705,11 +700,11 @@ logics with different combinations of  ``select()``, ``update()``,
 
 Example::
 
-	$data = array(
+	$data = [
 		'title' => 'My title',
 		'name'  => 'My Name',
 		'date'  => 'My date'
-	);
+	];
 
 	$builder->replace($data);
 
@@ -759,11 +754,11 @@ parameter.
 
 You can also pass an associative array to this function::
 
-	$array = array(
+	$array = [
 		'name'   => $name,
 		'title'  => $title,
 		'status' => $status
-	);
+	];
 
 	$builder->set($array);
 	$builder->insert();
@@ -788,11 +783,11 @@ Generates an update string and runs the query based on the data you
 supply. You can pass an **array** or an **object** to the function. Here
 is an example using an array::
 
-	$data = array(
+	$data = [
 		'title' => $title,
 		'name'  => $name,
 		'date'  => $date
-	);
+	];
 
 	$builder->where('id', $id);
 	$builder->update($data);
@@ -831,7 +826,7 @@ directly into the update function as a string::
 
 Or as an array::
 
-	$builder->update($data, array('id' => $id));
+	$builder->update($data, ['id' => $id]);
 
 You may also use the $builder->set() function described above when
 performing updates.
@@ -842,18 +837,18 @@ Generates an update string based on the data you supply, and runs the query.
 You can either pass an **array** or an **object** to the function.
 Here is an example using an array::
 
-	$data = array(
-	   array(
+	$data = [
+	   [
 	      'title' => 'My title' ,
 	      'name'  => 'My Name 2' ,
 	      'date'  => 'My date 2'
-	   ),
-	   array(
+	   ],
+	   [
 	      'title' => 'Another title' ,
 	      'name'  => 'Another Name 2' ,
 	      'date'  => 'Another date 2'
-	   )
-	);
+	   ]
+	];
 
 	$builder->updateBatch($data, 'title');
 
@@ -895,7 +890,7 @@ Generates a delete SQL string and runs the query.
 
 ::
 
-	$builder->delete(array('id' => $id));  // Produces: // DELETE FROM mytable  // WHERE id = $id
+	$builder->delete(['id' => $id]);  // Produces: // DELETE FROM mytable  // WHERE id = $id
 
 The first parameter is the where clause.
 You can also use the where() or or_where() functions instead of passing
@@ -953,7 +948,6 @@ multiple functions. Consider this example::
 
 .. _ar-caching:
 
-
 ***********************
 Resetting Query Builder
 ***********************
@@ -968,7 +962,7 @@ This is useful in situations where you are using Query Builder to generate SQL
 run the query::
 
     // Note that the second parameter of the get_compiled_select method is FALSE
-    $sql = $builder->select(array('field1','field2'))
+    $sql = $builder->select(['field1','field2'])
                    ->where('field3',5)
                    ->getCompiledSelect(false);
 
@@ -997,6 +991,15 @@ Class Reference
 		to build a query that can be canceled under certain conditions.
 
 	.. php:method:: countAllResults([$reset = TRUE])
+
+		:param	bool	$reset: Whether to reset values for SELECTs
+		:returns:	Number of rows in the query result
+		:rtype:	int
+
+		Generates a platform-specific query string that counts
+		all records returned by an Query Builder query.
+
+	.. php:method:: countAll([$reset = TRUE])
 
 		:param	bool	$reset: Whether to reset values for SELECTs
 		:returns:	Number of rows in the query result

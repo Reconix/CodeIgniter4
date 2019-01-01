@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2019 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	CodeIgniter
- * @author	CodeIgniter Dev Team
- * @copyright	2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
+
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
 
@@ -96,7 +97,7 @@ class ListCommands extends BaseCommand
 	 * The length of the longest command name.
 	 * Used during display in columns.
 	 *
-	 * @var int
+	 * @var integer
 	 */
 	protected $maxFirstLength = 0;
 
@@ -125,77 +126,68 @@ class ListCommands extends BaseCommand
 	 */
 	protected function describeCommands(array $commands = [])
 	{
-		arsort($commands);
+		ksort($commands);
 
-		$names = array_keys($commands);
-		$descs = array_column($commands, 'description');
-		$groups = array_column($commands, 'group');
-		$lastGroup = '';
+		// Sort into buckets by group
+		$sorted         = [];
+		$maxTitleLength = 0;
 
-		// Pad each item to the same length
-		$names = $this->padArray($names, 2, 2);
-		$countNames = count($names);
-		for ($i = 0; $i < $countNames; $i ++ )
+		foreach ($commands as $title => $command)
 		{
-			$lastGroup = $this->describeGroup($groups[$i], $lastGroup);
-
-			$out = CLI::color($names[$i], 'yellow');
-
-			if (isset($descs[$i]))
+			if (! isset($sorted[$command['group']]))
 			{
-				$out .= CLI::wrap($descs[$i], 125, strlen($names[$i]));
+				$sorted[$command['group']] = [];
 			}
 
-			CLI::write($out);
+			$sorted[$command['group']][$title] = $command;
+
+			$maxTitleLength = max($maxTitleLength, strlen($title));
 		}
-	}
 
-	//--------------------------------------------------------------------
+		ksort($sorted);
 
-	/**
-	 * Outputs the description, if necessary.
-	 *
-	 * @param string $new
-	 * @param string $old
-	 *
-	 * @return string
-	 */
-	protected function describeGroup(string $new, string $old)
-	{
-		if ($new == $old)
+		// Display it all...
+		foreach ($sorted as $group => $items)
 		{
-			return $old;
+			CLI::newLine();
+			CLI::write($group);
+
+			foreach ($items as $title => $item)
+			{
+				$title = $this->padTitle($title, $maxTitleLength, 2, 2);
+
+				$out = CLI::color($title, 'yellow');
+
+				if (isset($item['description']))
+				{
+					$out .= CLI::wrap($item['description'], 125, strlen($title));
+				}
+
+				CLI::write($out);
+			}
 		}
-
-		CLI::newLine();
-		CLI::write($new);
-
-		return $new;
 	}
 
 	//--------------------------------------------------------------------
 
 	/**
-	 * Returns a new array where all of the string elements have
-	 * been padding with trailing spaces to be the same length.
+	 * Pads our string out so that all titles are the same length to nicely line up descriptions.
 	 *
-	 * @param array $array
-	 * @param int   $extra // How many extra spaces to add at the end
-	 * @param int   $indent
+	 * @param string  $item
+	 * @param $max
+	 * @param integer $extra  // How many extra spaces to add at the end
+	 * @param integer $indent
 	 *
 	 * @return array
 	 */
-	protected function padArray($array, $extra = 2, $indent = 0)
+	protected function padTitle(string $item, $max, $extra = 2, $indent = 0)
 	{
-		$max = max(array_map('strlen', $array)) + $extra + $indent;
+		$max += $extra + $indent;
 
-		foreach ($array as &$item)
-		{
-			$item = str_repeat(' ', $indent) . $item;
-			$item = str_pad($item, $max);
-		}
+		$item = str_repeat(' ', $indent) . $item;
+		$item = str_pad($item, $max);
 
-		return $array;
+		return $item;
 	}
 
 	//--------------------------------------------------------------------

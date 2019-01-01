@@ -1,4 +1,5 @@
-<?php namespace CodeIgniter\Config;
+<?php
+namespace CodeIgniter\Config;
 
 use CodeIgniter\Test\CIUnitTestCase;
 
@@ -9,25 +10,19 @@ class BaseConfigTest extends CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
-	public function setup()
+	protected function setUp()
 	{
+		parent::setUp();
+
 		$this->fixturesFolder = __DIR__ . '/fixtures';
 
-		if ( ! class_exists('SimpleConfig', false))
+		if (! class_exists('SimpleConfig', false))
 		{
 			require $this->fixturesFolder . '/SimpleConfig.php';
 		}
-		if ( ! class_exists('RegistrarConfig', false))
+		if (! class_exists('RegistrarConfig', false))
 		{
 			require $this->fixturesFolder . '/RegistrarConfig.php';
-		}
-		if ( ! class_exists('RegistrarConfig2', false))
-		{
-			require $this->fixturesFolder . '/RegistrarConfig2.php';
-		}
-		if ( ! class_exists('RegistrarConfig3', false))
-		{
-			require $this->fixturesFolder . '/RegistrarConfig3.php';
 		}
 	}
 
@@ -43,16 +38,34 @@ class BaseConfigTest extends CIUnitTestCase
 		// empty treated as boolean false
 		$this->assertEquals(false, $config->echo);
 		// 'true' should be treated as boolean true
-		$this->assertEquals(true, $config->foxtrot);
+		$this->assertTrue($config->foxtrot);
 		// numbers should be treated properly
 		$this->assertEquals(18, $config->golf);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState  disabled
+	 */
+	public function testServerValues()
+	{
+		$_SERVER = [
+			'simpleconfig.shortie' => 123,
+			'SimpleConfig.longie'  => 456,
+		];
+		$dotenv  = new DotEnv($this->fixturesFolder, '.env');
+		$dotenv->load();
+		$config = new \SimpleConfig();
+
+		$this->assertEquals(123, $config->shortie);
+		$this->assertEquals(456, $config->longie);
 	}
 
 	//--------------------------------------------------------------------
 
 	public function testEnvironmentOverrides()
 	{
-		$dotenv = new DotEnv($this->fixturesFolder, '.env', 'z');
+		$dotenv = new DotEnv($this->fixturesFolder, '.env');
 		$dotenv->load();
 
 		$config = new \SimpleConfig();
@@ -64,9 +77,15 @@ class BaseConfigTest extends CIUnitTestCase
 		// override config with shortPrefix ENV var
 		$this->assertEquals('hubbahubba', $config->delta);
 		// incorrect env name should not inject property
-		$this->assertFalse(isset($config->notthere));
-		// same ENV var as property, but not namespaced, still over-rides 
+		$this->assertObjectNotHasAttribute('notthere', $config);
+		// same ENV var as property, but not namespaced, still over-rides
 		$this->assertEquals('kazaam', $config->bravo);
+		// empty ENV var should not affect config setting
+		$this->assertEquals('pineapple', $config->fruit);
+		// non-empty ENV var should overrideconfig setting
+		$this->assertEquals('banana', $config->dessert);
+		// null property should not be affected
+		$this->assertNull($config->QEMPTYSTR);
 	}
 
 	//--------------------------------------------------------------------
@@ -93,7 +112,7 @@ class BaseConfigTest extends CIUnitTestCase
 		$this->assertEquals('ci4', $config->default['name']);
 		$this->assertEquals('Malcolm', $config->crew['captain']);
 		$this->assertEquals('Spock', $config->crew['science']);
-		$this->assertEmpty($config->crew['pilot']);
+		$this->assertFalse(array_key_exists('pilot', $config->crew));
 		$this->assertTrue($config->crew['comms']);
 		$this->assertFalse($config->crew['doctor']);
 	}
@@ -135,8 +154,8 @@ class BaseConfigTest extends CIUnitTestCase
 		$config = new \SimpleConfig();
 
 		$this->assertEquals(0, $config->QZERO);
-		$this->assertSame("0", $config->QZEROSTR);
-		$this->assertEquals(" ", $config->QEMPTYSTR);
+		$this->assertSame('0', $config->QZEROSTR);
+		$this->assertEquals(' ', $config->QEMPTYSTR);
 		$this->assertFalse($config->QFALSE);
 	}
 
@@ -144,9 +163,13 @@ class BaseConfigTest extends CIUnitTestCase
 
 	public function testRegistrars()
 	{
-		$config = new \RegistrarConfig();
+		$config              = new \RegistrarConfig();
+		$config::$registrars = ['\Tests\Support\Config\Registrar'];
+		$this->setPrivateProperty($config, 'didDiscovery', true);
+		$method = $this->getPrivateMethodInvoker($config, 'registerProperties');
+		$method();
 
-		// no change to unmodified property	
+		// no change to unmodified property
 		$this->assertEquals('bar', $config->foo);
 		// add to an existing array property
 		$this->assertEquals(['baz', 'first', 'second'], $config->bar);
@@ -158,16 +181,13 @@ class BaseConfigTest extends CIUnitTestCase
 
 	public function testBadRegistrar()
 	{
-		$this->expectException('RuntimeException');
-		$config = new \RegistrarConfig2();
-		$this->assertEquals('bar', $config->foo);
-	}
+		// Shouldn't change any values.
+		$config              = new \RegistrarConfig();
+		$config::$registrars = ['\Tests\Support\Config\BadRegistrar'];
+		$this->setPrivateProperty($config, 'didDiscovery', true);
+		$method = $this->getPrivateMethodInvoker($config, 'registerProperties');
+		$method();
 
-	// not very interesting, but useful for code coverage
-	public function testWorseRegistrar()
-	{
-		$config = new \RegistrarConfig3();
-		// there should be no change
 		$this->assertEquals('bar', $config->foo);
 	}
 

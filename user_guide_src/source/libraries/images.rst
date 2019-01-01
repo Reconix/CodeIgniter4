@@ -14,7 +14,8 @@ actions:
 The following image libraries are supported: GD/GD2, and ImageMagick.
 
 .. contents::
-:local:
+    :local:
+    :depth: 2
 
 **********************
 Initializing the Class
@@ -36,7 +37,7 @@ The available Handlers are as follows:
 - imagick   The ImageMagick library.
 
 If using the ImageMagick library, you must set the path to the library on your
-server in **application/Config/Images.php**.
+server in **app/Config/Images.php**.
 
 .. note:: The ImageMagick handler does NOT require the imagick extension to be
         loaded on the server. As long as your script can access the library
@@ -101,7 +102,6 @@ There are six available processing methods:
 -  $image->rotate()
 -  $image->text()
 
-
 These methods return the class instance so they can be chained together, as shown above.
 If they fail they will throw a ``CodeIgniter\Images\ImageException`` that contains
 the error message. A good practice is to catch the exceptions, showing an
@@ -123,7 +123,6 @@ error upon failure, like this::
 	like this::
 
 	$this->image_lib->display_errors('<p>', '</p>');
-
 
 Cropping Images
 ---------------
@@ -184,7 +183,6 @@ Flattening Images
 -----------------
 
 The ``flatten()`` method aims to add a background color behind transparent images (PNG) and convert RGBA pixels to RGB pixels
-
 
 - Specify a background color when converting from transparent images to jpgs.
 
@@ -247,7 +245,6 @@ while the other dimension will be altered to match the original image's aspect r
 		->resize(200, 100, true, 'height')
 		->save('path/to/new/image.jpg');
 
-
 Rotating Images
 ---------------
 
@@ -259,7 +256,6 @@ The rotate() method allows you to rotate an image in 90 degree increments::
 
 .. note:: While the $angle parameter accepts a float, it will convert it to an integer during the process.
 		If the value is any other than the three values listed above, it will throw a CodeIgniter\Images\ImageException.
-
 
 Adding a Text Watermark
 -----------------------
@@ -303,5 +299,4 @@ The possible options that are recognized are as follows:
 
 .. note:: The ImageMagick driver does not recognize full server path for fontPath. Instead, simply provide the
 		name of one of the installed system fonts that you wish to use, i.e. Calibri.
-
 

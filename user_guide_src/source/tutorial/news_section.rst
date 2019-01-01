@@ -15,17 +15,17 @@ should be placed in a model, so they can easily be reused later. Models
 are the place where you retrieve, insert, and update information in your
 database or other data stores. They provide access to your data.
 
-Open up the *application/Models/* directory and create a new file called
+Open up the *app/Models/* directory and create a new file called
 *NewsModel.php* and add the following code. Make sure you've configured
 your database properly as described :doc:`here <../database/configuration>`.
 
 ::
 
-	<?php
+        namespace App\Models;
 
-	namespace App\Models;
-	
-	class NewsModel extends \CodeIgniter\Model
+        use CodeIgniter\Model;
+
+	class NewsModel extends Model
 	{
 		protected $table = 'news';
 	}
@@ -38,8 +38,8 @@ library. This will make the database class available through the
 Before querying the database, a database schema has to be created.
 Connect to your database and run the SQL command below (MySQL).
 Also add some seed records. For now, we'll just show you the query needed
-to create the table, but you should read about :doc:`Migrations <../database/migration>`
-and :doc:`Seeds <../database/seeds>` to create more useful database setups.
+to create the table, but you should read about :doc:`Migrations <../dbmgmt/migration>`
+and :doc:`Seeds <../dbmgmt/seeds>` to create more useful database setups.
 
 ::
 
@@ -95,15 +95,15 @@ Now that the queries are written, the model should be tied to the views
 that are going to display the news items to the user. This could be done
 in our ``Pages`` controller created earlier, but for the sake of clarity,
 a new ``News`` controller is defined. Create the new controller at
-*application/Controllers/News.php*.
+*app/Controllers/News.php*.
 
 ::
 
-	<?php
-
+	namespace App\Controllers;
 	use App\Models\NewsModel;
+        use CodeIgniter\Controller;
 
-	class News extends \CodeIgniter\Controller
+	class News extends Controller
 	{
 		public function index()
 		{
@@ -144,15 +144,15 @@ the views. Modify the ``index()`` method to look like this::
 			'title' => 'News archive',
 		];
 
-		echo view('Templates/Header', $data);
-		echo view('News/Index', $data);
-		echo view('Templates/Footer');
+		echo view('templates/header', $data);
+		echo view('news/index', $data);
+		echo view('templates/footer');
 	}
 
 The code above gets all news records from the model and assigns it to a
 variable. The value for the title is also assigned to the ``$data['title']``
 element and all data is passed to the views. You now need to create a
-view to render the news items. Create *application/Views/News/Index.php*
+view to render the news items. Create *app/Views/news/index.php*
 and add the next piece of code.
 
 ::
@@ -183,7 +183,7 @@ and add the next piece of code.
 Here, each news item is looped and displayed to the user. You can see we
 wrote our template in PHP mixed with HTML. If you prefer to use a template
 language, you can use CodeIgniter's :doc:`View
-Parser <../general/view_parser>` or a third party parser.
+Parser </outgoing/view_parser>` or a third party parser.
 
 The news overview page is now done, but a page to display individual
 news items is still absent. The model created earlier is made in such
@@ -206,15 +206,15 @@ add some code to the controller and create a new view. Go back to the
 
 		$data['title'] = $data['news']['title'];
 
-		echo view('Templates/Header', $data);
-		echo view('News/View', $data);
-		echo view('Templates/Footer');
+		echo view('templates/header', $data);
+		echo view('news/view', $data);
+		echo view('templates/footer');
 	}
 
 Instead of calling the ``getNews()`` method without a parameter, the
 ``$slug`` variable is passed, so it will return the specific news item.
 The only things left to do is create the corresponding view at
-*application/Views/News/View.php*. Put the following code in this file.
+*app/Views/news/view.php*. Put the following code in this file.
 
 ::
 
@@ -227,7 +227,7 @@ Routing
 
 Because of the wildcard routing rule created earlier, you need an extra
 route to view the controller that you just made. Modify your routing file
-(*application/config/routes.php*) so it looks as follows.
+(*app/config/routes.php*) so it looks as follows.
 This makes sure the requests reach the ``News`` controller instead of
 going directly to the ``Pages`` controller. The first line routes URI's
 with a slug to the ``view()`` method in the ``News`` controller.
@@ -236,7 +236,7 @@ with a slug to the ``view()`` method in the ``News`` controller.
 
 	$routes->get('news/(:segment)', 'News::view/$1');
 	$routes->get('news', 'News::index');
-	$routes->add('(:any)', 'Pages::view/$1');
+	$routes->get('(:any)', 'Pages::view/$1');
 
 Point your browser to your document root, followed by index.php/news and
 watch your news page.

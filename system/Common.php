@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2019 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package     CodeIgniter
- * @author      CodeIgniter Dev Team
- * @copyright   2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
- * @license     https://opensource.org/licenses/MIT  MIT License
- * @link        https://codeigniter.com
- * @since       Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT  MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
+
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Services;
@@ -51,9 +52,8 @@ use Config\Services;
 // Services Convenience Functions
 //--------------------------------------------------------------------
 
-if ( ! function_exists('cache'))
+if (! function_exists('cache'))
 {
-
 	/**
 	 * A convenience method that provides access to the Cache
 	 * object. If no parameter is provided, will return the object,
@@ -69,7 +69,7 @@ if ( ! function_exists('cache'))
 	 */
 	function cache(string $key = null)
 	{
-		$cache = \Config\Services::cache();
+		$cache = Services::cache();
 
 		// No params - return cache object
 		if (is_null($key))
@@ -80,14 +80,30 @@ if ( ! function_exists('cache'))
 		// Still here? Retrieve the value.
 		return $cache->get($key);
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('view'))
+if (! function_exists('config'))
 {
+	/**
+	 * More simple way of getting config instances
+	 *
+	 * @param string  $name
+	 * @param boolean $getShared
+	 *
+	 * @return mixed
+	 */
+	function config(string $name, bool $getShared = true)
+	{
+		return \CodeIgniter\Config\Config::get($name, $getShared);
+	}
+}
 
+//--------------------------------------------------------------------
+
+if (! function_exists('view'))
+{
 	/**
 	 * Grabs the current RendererInterface-compatible class
 	 * and tells it to render the specified view. Simply provides
@@ -120,21 +136,19 @@ if ( ! function_exists('view'))
 		return $renderer->setData($data, 'raw')
 						->render($name, $options, $saveData);
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('view_cell'))
+if (! function_exists('view_cell'))
 {
-
 	/**
 	 * View cells are used within views to insert HTML chunks that are managed
 	 * by other classes.
 	 *
 	 * @param string      $library
 	 * @param null        $params
-	 * @param int         $ttl
+	 * @param integer     $ttl
 	 * @param string|null $cacheName
 	 *
 	 * @return string
@@ -144,14 +158,12 @@ if ( ! function_exists('view_cell'))
 		return Services::viewcell()
 						->render($library, $params, $ttl, $cacheName);
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('env'))
+if (! function_exists('env'))
 {
-
 	/**
 	 * Allows user to retrieve values from the environment
 	 * variables that have been set. Especially useful for
@@ -187,19 +199,17 @@ if ( ! function_exists('env'))
 			case 'empty':
 				return '';
 			case 'null':
-				return;
+				return null;
 		}
 
 		return $value;
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('esc'))
+if (! function_exists('esc'))
 {
-
 	/**
 	 * Performs simple auto-escaping of data for security reasons.
 	 * Might consider making this more complex at a later date.
@@ -233,17 +243,17 @@ if ( ! function_exists('esc'))
 			// Provide a way to NOT escape data since
 			// this could be called automatically by
 			// the View library.
-			if (empty($context) || $context == 'raw')
+			if (empty($context) || $context === 'raw')
 			{
 				return $data;
 			}
 
-			if ( ! in_array($context, ['html', 'js', 'css', 'url', 'attr']))
+			if (! in_array($context, ['html', 'js', 'css', 'url', 'attr']))
 			{
 				throw new \InvalidArgumentException('Invalid escape context provided.');
 			}
 
-			if ($context == 'attr')
+			if ($context === 'attr')
 			{
 				$method = 'escapeHtmlAttr';
 			}
@@ -252,22 +262,28 @@ if ( ! function_exists('esc'))
 				$method = 'escape' . ucfirst($context);
 			}
 
-			// @todo Optimize this to only load a single instance during page request.
-			$escaper = new \Zend\Escaper\Escaper($encoding);
+			static $escaper;
+			if (! $escaper)
+			{
+				$escaper = new \Zend\Escaper\Escaper($encoding);
+			}
+
+			if ($encoding && $escaper->getEncoding() !== $encoding)
+			{
+				$escaper = new \Zend\Escaper\Escaper($encoding);
+			}
 
 			$data = $escaper->$method($data);
 		}
 
 		return $data;
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('session'))
+if (! function_exists('session'))
 {
-
 	/**
 	 * A convenience method for accessing the session instance,
 	 * or an item that has been set in the session.
@@ -282,22 +298,22 @@ if ( ! function_exists('session'))
 	 */
 	function session($val = null)
 	{
+		$session = Services::session();
+
 		// Returning a single item?
 		if (is_string($val))
 		{
-			return $_SESSION[$val] ?? null;
+			return $session->get($val);
 		}
 
-		return \Config\Services::session();
+		return $session;
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('timer'))
+if (! function_exists('timer'))
 {
-
 	/**
 	 * A convenience method for working with the timer.
 	 * If no parameter is passed, it will return the timer instance,
@@ -309,7 +325,7 @@ if ( ! function_exists('timer'))
 	 */
 	function timer(string $name = null)
 	{
-		$timer = \Config\Services::timer();
+		$timer = Services::timer();
 
 		if (empty($name))
 		{
@@ -323,14 +339,12 @@ if ( ! function_exists('timer'))
 
 		return $timer->start($name);
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('service'))
+if (! function_exists('service'))
 {
-
 	/**
 	 * Allows cleaner access to the Services Config file.
 	 * Always returns a SHARED instance of the class, so
@@ -350,14 +364,12 @@ if ( ! function_exists('service'))
 	{
 		return Services::$name(...$params);
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('single_service'))
+if (! function_exists('single_service'))
 {
-
 	/**
 	 * Allow cleaner access to a Service.
 	 * Always returns a new instance of the class.
@@ -374,14 +386,12 @@ if ( ! function_exists('single_service'))
 
 		return Services::$name(...$params);
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('lang'))
+if (! function_exists('lang'))
 {
-
 	/**
 	 * A convenience method to translate a string and format it
 	 * with the intl extension's MessageFormatter object.
@@ -397,15 +407,12 @@ if ( ! function_exists('lang'))
 		return Services::language($locale)
 						->getLine($line, $args);
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-
-if ( ! function_exists('log_message'))
+if (! function_exists('log_message'))
 {
-
 	/**
 	 * A convenience/compatibility method for logging events through
 	 * the Log system.
@@ -431,43 +438,41 @@ if ( ! function_exists('log_message'))
 		// When running tests, we want to always ensure that the
 		// TestLogger is running, which provides utilities for
 		// for asserting that logs were called in the test code.
-		if (ENVIRONMENT == 'testing')
+		if (ENVIRONMENT === 'testing')
 		{
-			$logger = new \CodeIgniter\Log\TestLogger(new \Config\Logger());
+			$logger = new \Tests\Support\Log\TestLogger(new \Config\Logger());
 
 			return $logger->log($level, $message, $context);
 		}
 
+		// @codeCoverageIgnoreStart
 		return Services::logger(true)
 						->log($level, $message, $context);
+		// @codeCoverageIgnoreEnd
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('is_cli'))
+if (! function_exists('is_cli'))
 {
-
 	/**
 	 * Is CLI?
 	 *
 	 * Test to see if a request was made from the command line.
 	 *
-	 * @return    bool
+	 * @return boolean
 	 */
 	function is_cli()
 	{
 		return (PHP_SAPI === 'cli' || defined('STDIN'));
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('route_to'))
+if (! function_exists('route_to'))
 {
-
 	/**
 	 * Given a controller/method string and any params,
 	 * will attempt to build the relative URL to the
@@ -477,34 +482,30 @@ if ( ! function_exists('route_to'))
 	 * have a route defined in the routes Config file.
 	 *
 	 * @param string $method
-	 * @param array       ...$params
+	 * @param array  ...$params
 	 *
 	 * @return false|string
 	 */
 	function route_to(string $method, ...$params): string
 	{
-		$routes = Services::routes();
-
-		return $routes->reverseRoute($method, ...$params);
+		return Services::routes()->reverseRoute($method, ...$params);
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('remove_invisible_characters'))
+if (! function_exists('remove_invisible_characters'))
 {
-
 	/**
 	 * Remove Invisible Characters
 	 *
 	 * This prevents sandwiching null characters
 	 * between ascii characters, like Java\0script.
 	 *
-	 * @param   string $str
-	 * @param   bool   $url_encoded
+	 * @param string  $str
+	 * @param boolean $url_encoded
 	 *
-	 * @return  string
+	 * @return string
 	 */
 	function remove_invisible_characters($str, $url_encoded = true)
 	{
@@ -523,21 +524,25 @@ if ( ! function_exists('remove_invisible_characters'))
 		do
 		{
 			$str = preg_replace($non_displayables, '', $str, -1, $count);
-		} while ($count);
+		}
+		while ($count);
 
 		return $str;
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('helper'))
+if (! function_exists('helper'))
 {
-
 	/**
 	 * Loads a helper file into memory. Supports namespaced helpers,
 	 * both in and out of the 'helpers' directory of a namespaced directory.
+	 *
+	 * Will load ALL helpers of the matching name, in the following order:
+	 *   1. application/Helpers
+	 *   2. {namespace}/Helpers
+	 *   3. system/Helpers
 	 *
 	 * @param string|array $filenames
 	 */
@@ -545,34 +550,83 @@ if ( ! function_exists('helper'))
 	{
 		$loader = Services::locator(true);
 
-		if ( ! is_array($filenames))
+		if (! is_array($filenames))
 		{
 			$filenames = [$filenames];
 		}
 
+		// Store a list of all files to include...
+		$includes = [];
+
 		foreach ($filenames as $filename)
 		{
+			// Store our system and application helper
+			// versions so that we can control the load ordering.
+			$systemHelper  = null;
+			$appHelper     = null;
+			$localIncludes = [];
+
 			if (strpos($filename, '_helper') === false)
 			{
 				$filename .= '_helper';
 			}
 
-			$path = $loader->locateFile($filename, 'Helpers');
+			$paths = $loader->search('Helpers/' . $filename);
 
-			if ( ! empty($path))
+			if (! empty($paths))
 			{
-				include_once $path;
+				foreach ($paths as $path)
+				{
+					if (strpos($path, APPPATH) === 0)
+					{
+						// @codeCoverageIgnoreStart
+						$appHelper = $path;
+						// @codeCoverageIgnoreEnd
+					}
+					elseif (strpos($path, SYSTEMPATH) === 0)
+					{
+						$systemHelper = $path;
+					}
+					else
+					{
+						$localIncludes[] = $path;
+					}
+				}
+			}
+
+			// App-level helpers should override all others
+			if (! empty($appHelper))
+			{
+				// @codeCoverageIgnoreStart
+				$includes[] = $appHelper;
+				// @codeCoverageIgnoreEnd
+			}
+
+			// All namespaced files get added in next
+			$includes = array_merge($includes, $localIncludes);
+
+			// And the system default one should be added in last.
+			if (! empty($systemHelper))
+			{
+				$includes[] = $systemHelper;
+			}
+		}
+
+		// Now actually include all of the files
+		if (! empty($includes))
+		{
+			foreach ($includes as $path)
+			{
+				include_once($path);
 			}
 		}
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('app_timezone'))
+if (! function_exists('app_timezone'))
 {
-
 	/**
 	 * Returns the timezone the application has been set to display
 	 * dates in. This might be different than the timezone set
@@ -583,18 +637,16 @@ if ( ! function_exists('app_timezone'))
 	 */
 	function app_timezone()
 	{
-		$config = new \Config\App();
+		$config = config(\Config\App::class);
 
 		return $config->appTimezone;
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('csrf_token'))
+if (! function_exists('csrf_token'))
 {
-
 	/**
 	 * Returns the CSRF token name.
 	 * Can be used in Views when building hidden inputs manually,
@@ -604,18 +656,16 @@ if ( ! function_exists('csrf_token'))
 	 */
 	function csrf_token()
 	{
-		$config = new \Config\App();
+		$config = config(\Config\App::class);
 
 		return $config->CSRFTokenName;
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('csrf_hash'))
+if (! function_exists('csrf_hash'))
 {
-
 	/**
 	 * Returns the current hash value for the CSRF protection.
 	 * Can be used in Views when building hidden inputs manually,
@@ -629,31 +679,27 @@ if ( ! function_exists('csrf_hash'))
 
 		return $security->getCSRFHash();
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('csrf_field'))
+if (! function_exists('csrf_field'))
 {
-
 	/**
 	 * Generates a hidden input field for use within manually generated forms.
 	 *
 	 * @return string
 	 */
-	function csrf_field()
+	function csrf_field(string $id = null)
 	{
-		return '<input type="hidden" name="' . csrf_token() . '" value="' . csrf_hash() . '">';
+		return '<input type="hidden"' . (! empty($id) ? ' id="' . esc($id, 'attr') . '"' : '') . ' name="' . csrf_token() . '" value="' . csrf_hash() . '" />';
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('force_https'))
+if (! function_exists('force_https'))
 {
-
 	/**
 	 * Used to force a page to be accessed in via HTTPS.
 	 * Uses a standard redirect, plus will set the HSTS header
@@ -662,10 +708,15 @@ if ( ! function_exists('force_https'))
 	 *
 	 * @see https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
 	 *
-	 * @param int               $duration How long should the SSL header be set for? (in seconds)
+	 * @param integer           $duration How long should the SSL header be set for? (in seconds)
 	 *                                    Defaults to 1 year.
 	 * @param RequestInterface  $request
 	 * @param ResponseInterface $response
+	 *
+	 * Not testable, as it will exit!
+	 *
+	 * @throws             \CodeIgniter\HTTP\Exceptions\HTTPException
+	 * @codeCoverageIgnore
 	 */
 	function force_https(int $duration = 31536000, RequestInterface $request = null, ResponseInterface $response = null)
 	{
@@ -678,7 +729,7 @@ if ( ! function_exists('force_https'))
 			$response = Services::response(null, true);
 		}
 
-		if ($request->isSecure())
+		if (is_cli() || $request->isSecure())
 		{
 			return;
 		}
@@ -696,7 +747,7 @@ if ( ! function_exists('force_https'))
 
 		$uri = \CodeIgniter\HTTP\URI::createURIString(
 						$uri->getScheme(), $uri->getAuthority(true), $uri->getPath(), // Absolute URIs should use a "/" for an empty path
-											$uri->getQuery(), $uri->getFragment()
+						$uri->getQuery(), $uri->getFragment()
 		);
 
 		// Set an HSTS header
@@ -704,14 +755,52 @@ if ( ! function_exists('force_https'))
 		$response->redirect($uri);
 		exit();
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('redirect'))
+if (! function_exists('old'))
 {
+	/**
+	 * Provides access to "old input" that was set in the session
+	 * during a redirect()->withInput().
+	 *
+	 * @param string         $key
+	 * @param null           $default
+	 * @param string|boolean $escape
+	 *
+	 * @return mixed|null
+	 */
+	function old(string $key, $default = null, $escape = 'html')
+	{
+		$request = Services::request();
 
+		$value = $request->getOldInput($key);
+
+		// Return the default value if nothing
+		// found in the old input.
+		if (is_null($value))
+		{
+			return $default;
+		}
+
+		// If the result was serialized array or string, then unserialize it for use...
+		if (is_string($value))
+		{
+			if (strpos($value, 'a:') === 0 || strpos($value, 's:') === 0)
+			{
+				$value = unserialize($value);
+			}
+		}
+
+		return $escape === false ? $value : esc($value, $escape);
+	}
+}
+
+//--------------------------------------------------------------------
+
+if (! function_exists('redirect'))
+{
 	/**
 	 * Convenience method that works with the current global $request and
 	 * $router instances to redirect using named/reverse-routed routes
@@ -725,35 +814,33 @@ if ( ! function_exists('redirect'))
 	 *
 	 * @return \CodeIgniter\HTTP\RedirectResponse
 	 */
-	function redirect(string $uri=null)
+	function redirect(string $uri = null)
 	{
 		$response = Services::redirectResponse(null, true);
 
 		if (! empty($uri))
 		{
-			return $response->to($uri);
+			return $response->route($uri);
 		}
 
 		return $response;
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('stringify_attributes'))
+if (! function_exists('stringify_attributes'))
 {
-
 	/**
 	 * Stringify attributes for use in HTML tags.
 	 *
 	 * Helper function used to convert a string, array, or object
 	 * of attributes to a string.
 	 *
-	 * @param   mixed $attributes string, array, object
-	 * @param   bool  $js
+	 * @param mixed   $attributes string, array, object
+	 * @param boolean $js
 	 *
-	 * @return  string
+	 * @return string
 	 */
 	function stringify_attributes($attributes, $js = false): string
 	{
@@ -778,14 +865,12 @@ if ( ! function_exists('stringify_attributes'))
 
 		return rtrim($atts, ',');
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('is_really_writable'))
+if (! function_exists('is_really_writable'))
 {
-
 	/**
 	 * Tests for file writability
 	 *
@@ -793,11 +878,13 @@ if ( ! function_exists('is_really_writable'))
 	 * the file, based on the read-only attribute. is_writable() is also unreliable
 	 * on Unix servers if safe_mode is on.
 	 *
-	 * @link    https://bugs.php.net/bug.php?id=54709
+	 * @link https://bugs.php.net/bug.php?id=54709
 	 *
-	 * @param   string $file
+	 * @param string $file
 	 *
-	 * @return  bool
+	 * @return boolean
+	 *
+	 * @codeCoverageIgnore Not practical to test, as travis runs on linux
 	 */
 	function is_really_writable($file)
 	{
@@ -824,7 +911,7 @@ if ( ! function_exists('is_really_writable'))
 
 			return true;
 		}
-		elseif ( ! is_file($file) OR ( $fp = @fopen($file, 'ab')) === false)
+		elseif (! is_file($file) || ( $fp = @fopen($file, 'ab')) === false)
 		{
 			return false;
 		}
@@ -833,43 +920,39 @@ if ( ! function_exists('is_really_writable'))
 
 		return true;
 	}
-
 }
 
 //--------------------------------------------------------------------
 
-if ( ! function_exists('slash_item'))
+if (! function_exists('slash_item'))
 {
-
 	//Unlike CI3, this function is placed here because
 	//it's not a config, or part of a config.
 	/**
 	 * Fetch a config file item with slash appended (if not empty)
 	 *
-	 * @param   string $item Config item name
+	 * @param string $item Config item name
 	 *
-	 * @return  string|null The configuration item or NULL if
+	 * @return string|null The configuration item or NULL if
 	 * the item doesn't exist
 	 */
 	function slash_item($item)
 	{
-		$config = new \Config\App();
+		$config     = config(\Config\App::class);
 		$configItem = $config->{$item};
 
-		if ( ! isset($configItem) || empty(trim($configItem)))
+		if (! isset($configItem) || empty(trim($configItem)))
 		{
 			return $configItem;
 		}
 
 		return rtrim($configItem, '/') . '/';
 	}
-
 }
 //--------------------------------------------------------------------
 
-if ( ! function_exists('function_usable'))
+if (! function_exists('function_usable'))
 {
-
 	/**
 	 * Function usable
 	 *
@@ -888,10 +971,12 @@ if ( ! function_exists('function_usable'))
 	 * that version is yet to be released. This function will therefore
 	 * be just temporary, but would probably be kept for a few years.
 	 *
-	 * @link	http://www.hardened-php.net/suhosin/
-	 * @param	string	$function_name	Function to check for
-	 * @return	bool	TRUE if the function exists and is safe to call,
-	 * 			FALSE otherwise.
+	 * @link   http://www.hardened-php.net/suhosin/
+	 * @param  string $function_name Function to check for
+	 * @return boolean    TRUE if the function exists and is safe to call,
+	 *             FALSE otherwise.
+	 *
+	 * @codeCoverageIgnore This is too exotic
 	 */
 	function function_usable($function_name)
 	{
@@ -899,17 +984,16 @@ if ( ! function_exists('function_usable'))
 
 		if (function_exists($function_name))
 		{
-			if ( ! isset($_suhosin_func_blacklist))
+			if (! isset($_suhosin_func_blacklist))
 			{
 				$_suhosin_func_blacklist = extension_loaded('suhosin') ? explode(',', trim(ini_get('suhosin.executor.func.blacklist'))) : [];
 			}
 
-			return ! in_array($function_name, $_suhosin_func_blacklist, TRUE);
+			return ! in_array($function_name, $_suhosin_func_blacklist, true);
 		}
 
-		return FALSE;
+		return false;
 	}
-
 }
 
 //--------------------------------------------------------------------
@@ -920,6 +1004,8 @@ if (! function_exists('dd'))
 	 * Prints a Kint debug report and exits.
 	 *
 	 * @param array ...$vars
+	 *
+	 * @codeCoverageIgnore Can't be tested ... exits
 	 */
 	function dd(...$vars)
 	{

@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2019 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package      CodeIgniter
- * @author       CodeIgniter Dev Team
- * @copyright    2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
- * @license      https://opensource.org/licenses/MIT	MIT License
- * @link         https://codeigniter.com
- * @since        Version 4.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 4.0.0
  * @filesource
  */
+
 use CodeIgniter\Database\Query;
 
 /**
@@ -108,7 +109,15 @@ class Database extends BaseCollector
 	 */
 	public static function collect(Query $query)
 	{
-		static::$queries[] = $query;
+		$config = config('Toolbar');
+
+		// Provide default in case it's not set
+		$max = $config->maxQueries ?: 100;
+
+		if (count(static::$queries) < $max)
+		{
+			static::$queries[] = $query;
+		}
 	}
 
 	//--------------------------------------------------------------------
@@ -126,20 +135,20 @@ class Database extends BaseCollector
 		{
 			// Connection Time
 			$data[] = [
-				'name'		 => 'Connecting to Database: "' . $alias . '"',
-				'component'	 => 'Database',
-				'start'		 => $connection->getConnectStart(),
-				'duration'	 => $connection->getConnectDuration()
+				'name'      => 'Connecting to Database: "' . $alias . '"',
+				'component' => 'Database',
+				'start'     => $connection->getConnectStart(),
+				'duration'  => $connection->getConnectDuration(),
 			];
 		}
 
 		foreach (static::$queries as $query)
 		{
 			$data[] = [
-				'name'		 => 'Query',
-				'component'	 => 'Database',
-				'start'		 => $query->getStartTime(true),
-				'duration'	 => $query->getDuration()
+				'name'      => 'Query',
+				'component' => 'Database',
+				'start'     => $query->getStartTime(true),
+				'duration'  => $query->getDuration(),
 			];
 		}
 
@@ -149,22 +158,47 @@ class Database extends BaseCollector
 	//--------------------------------------------------------------------
 
 	/**
-	 * Returns the HTML to fill the Database tab in the toolbar.
+	 * Returns the data of this collector to be formatted in the toolbar
 	 *
-	 * @return string The data formatted for the toolbar.
+	 * @return array
 	 */
-	public function display(): string
+	public function display(): array
 	{
 		// Key words we want bolded
-		$highlight = ['SELECT', 'DISTINCT', 'FROM', 'WHERE', 'AND', 'LEFT&nbsp;JOIN', 'ORDER&nbsp;BY', 'GROUP&nbsp;BY',
-			'LIMIT', 'INSERT', 'INTO', 'VALUES', 'UPDATE', 'OR&nbsp;', 'HAVING', 'OFFSET', 'NOT&nbsp;IN',
-			'IN', 'LIKE', 'NOT&nbsp;LIKE', 'COUNT', 'MAX', 'MIN', 'ON', 'AS', 'AVG', 'SUM', '(', ')'
+		$highlight = [
+			'SELECT',
+			'DISTINCT',
+			'FROM',
+			'WHERE',
+			'AND',
+			'LEFT&nbsp;JOIN',
+			'ORDER&nbsp;BY',
+			'GROUP&nbsp;BY',
+			'LIMIT',
+			'INSERT',
+			'INTO',
+			'VALUES',
+			'UPDATE',
+			'OR&nbsp;',
+			'HAVING',
+			'OFFSET',
+			'NOT&nbsp;IN',
+			'IN',
+			'LIKE',
+			'NOT&nbsp;LIKE',
+			'COUNT',
+			'MAX',
+			'MIN',
+			'ON',
+			'AS',
+			'AVG',
+			'SUM',
+			'(',
+			')',
 		];
 
-		$parser = \Config\Services::parser(BASEPATH . 'Debug/Toolbar/Views/', null,false);
-
 		$data = [
-			'queries' => []
+			'queries' => [],
 		];
 
 		foreach (static::$queries as $query)
@@ -177,15 +211,12 @@ class Database extends BaseCollector
 			}
 
 			$data['queries'][] = [
-				'duration'	 => ($query->getDuration(5) * 1000) .' ms',
-				'sql'		 => $sql
+				'duration' => ($query->getDuration(5) * 1000) . ' ms',
+				'sql'      => $sql,
 			];
 		}
 
-		$output = $parser->setData($data)
-				->render('_database.tpl');
-
-		return $output;
+		return $data;
 	}
 
 	//--------------------------------------------------------------------
@@ -193,7 +224,7 @@ class Database extends BaseCollector
 	/**
 	 * Gets the "badge" value for the button.
 	 *
-	 * @return int
+	 * @return integer
 	 */
 	public function getBadgeValue()
 	{
@@ -209,9 +240,34 @@ class Database extends BaseCollector
 	 */
 	public function getTitleDetails(): string
 	{
-		return '(' . count(static::$queries) . ' Queries across ' . count($this->connections) . ' Connection' .
-				(count($this->connections) > 1 ? 's' : '') . ')';
+		return '(' . count(static::$queries) . ' Queries across ' . ($countConnection = count($this->connections)) . ' Connection' .
+				($countConnection > 1 ? 's' : '') . ')';
 	}
 
 	//--------------------------------------------------------------------
+
+	/**
+	 * Does this collector have any data collected?
+	 *
+	 * @return boolean
+	 */
+	public function isEmpty()
+	{
+		return empty(static::$queries);
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Display the icon.
+	 *
+	 * Icon from https://icons8.com - 1em package
+	 *
+	 * @return string
+	 */
+	public function icon(): string
+	{
+		return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADMSURBVEhLY6A3YExLSwsA4nIycQDIDIhRWEBqamo/UNF/SjDQjF6ocZgAKPkRiFeEhoYyQ4WIBiA9QAuWAPEHqBAmgLqgHcolGQD1V4DMgHIxwbCxYD+QBqcKINseKo6eWrBioPrtQBq/BcgY5ht0cUIYbBg2AJKkRxCNWkDQgtFUNJwtABr+F6igE8olGQD114HMgHIxAVDyAhA/AlpSA8RYUwoeXAPVex5qHCbIyMgwBCkAuQJIY00huDBUz/mUlBQDqHGjgBjAwAAACexpph6oHSQAAAAASUVORK5CYII=';
+	}
+
 }

@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2019 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package      CodeIgniter
- * @author       CodeIgniter Dev Team
- * @copyright    2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
- * @license      https://opensource.org/licenses/MIT	MIT License
- * @link         https://codeigniter.com
- * @since        Version 4.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 4.0.0
  * @filesource
  */
+
 use CodeIgniter\Services;
 use CodeIgniter\View\RendererInterface;
 
@@ -48,7 +49,7 @@ class Events extends BaseCollector
 	 * Whether this collector has data that can
 	 * be displayed in the Timeline.
 	 *
-	 * @var bool
+	 * @var boolean
 	 */
 	protected $hasTimeline = false;
 
@@ -56,7 +57,7 @@ class Events extends BaseCollector
 	 * Whether this collector needs to display
 	 * content in a tab or not.
 	 *
-	 * @var bool
+	 * @var boolean
 	 */
 	protected $hasTabContent = true;
 
@@ -64,7 +65,7 @@ class Events extends BaseCollector
 	 * Whether this collector has data that
 	 * should be shown in the Vars tab.
 	 *
-	 * @var bool
+	 * @var boolean
 	 */
 	protected $hasVarData = false;
 
@@ -78,6 +79,7 @@ class Events extends BaseCollector
 
 	/**
 	 * Instance of the Renderer service
+	 *
 	 * @var RendererInterface
 	 */
 	protected $viewer;
@@ -109,10 +111,10 @@ class Events extends BaseCollector
 		foreach ($rows as $name => $info)
 		{
 			$data[] = [
-				'name'		 => 'View: ' . $info['view'],
-				'component'	 => 'Views',
-				'start'		 => $info['start'],
-				'duration'	 => $info['end'] - $info['start']
+				'name'      => 'View: ' . $info['view'],
+				'component' => 'Views',
+				'start'     => $info['start'],
+				'duration'  => $info['end'] - $info['start'],
 			];
 		}
 
@@ -122,16 +124,14 @@ class Events extends BaseCollector
 	//--------------------------------------------------------------------
 
 	/**
-	 * Returns the HTML to fill the Events tab in the toolbar.
+	 * Returns the data of this collector to be formatted in the toolbar
 	 *
-	 * @return string The data formatted for the toolbar.
+	 * @return array
 	 */
-	public function display(): string
+	public function display(): array
 	{
-		$parser = \Config\Services::parser(BASEPATH . 'Debug/Toolbar/Views/', null,false);
-
 		$data = [
-			'events' => []
+			'events' => [],
 		];
 
 		foreach (\CodeIgniter\Events\Events::getPerformanceLogs() as $row)
@@ -141,22 +141,19 @@ class Events extends BaseCollector
 			if (! array_key_exists($key, $data['events']))
 			{
 				$data['events'][$key] = [
-					'event' => $key,
-					'duration' => number_format(($row['end']-$row['start']) * 1000, 2),
-					'count' => 1,
+					'event'    => $key,
+					'duration' => number_format(($row['end'] - $row['start']) * 1000, 2),
+					'count'    => 1,
 				];
 
 				continue;
 			}
 
-			$data['events'][$key]['duration'] += number_format(($row['end']-$row['start']) * 1000, 2);
+			$data['events'][$key]['duration'] += number_format(($row['end'] - $row['start']) * 1000, 2);
 			$data['events'][$key]['count']++;
 		}
 
-		$output = $parser->setData($data)
-		                 ->render('_events.tpl');
-
-		return $output;
+		return $data;
 	}
 
 	//--------------------------------------------------------------------
@@ -167,5 +164,19 @@ class Events extends BaseCollector
 	public function getBadgeValue()
 	{
 		return count(\CodeIgniter\Events\Events::getPerformanceLogs());
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Display the icon.
+	 *
+	 * Icon from https://icons8.com - 1em package
+	 *
+	 * @return string
+	 */
+	public function icon(): string
+	{
+		return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAEASURBVEhL7ZXNDcIwDIVTsRBH1uDQDdquUA6IM1xgCA6MwJUN2hk6AQzAz0vl0ETUxC5VT3zSU5w81/mRMGZysixbFEVR0jSKNt8geQU9aRpFmp/keX6AbjZ5oB74vsaN5lSzA4tLSjpBFxsjeSuRy4d2mDdQTWU7YLbXTNN05mKyovj5KL6B7q3hoy3KwdZxBlT+Ipz+jPHrBqOIynZgcZonoukb/0ckiTHqNvDXtXEAaygRbaB9FvUTjRUHsIYS0QaSp+Dw6wT4hiTmYHOcYZsdLQ2CbXa4ftuuYR4x9vYZgdb4vsFYUdmABMYeukK9/SUme3KMFQ77+Yfzh8eYF8+orDuDWU5LAAAAAElFTkSuQmCC';
 	}
 }

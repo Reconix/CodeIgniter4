@@ -1,8 +1,8 @@
 <?php namespace CodeIgniter\Database\Builder;
 
 use CodeIgniter\Database\BaseBuilder;
-use CodeIgniter\Database\MockConnection;
-use CodeIgniter\Database\MockQuery;
+use Tests\Support\Database\MockQuery;
+use Tests\Support\Database\MockConnection;
 
 class UpdateTest extends \CIUnitTestCase
 {
@@ -10,8 +10,10 @@ class UpdateTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
-	public function setUp()
+	protected function setUp()
 	{
+		parent::setUp();
+
 		$this->db = new MockConnection([]);
 	}
 
@@ -19,12 +21,15 @@ class UpdateTest extends \CIUnitTestCase
 
 	public function testUpdate()
 	{
-	    $builder = new BaseBuilder('jobs', $this->db);
+		$builder = new BaseBuilder('jobs', $this->db);
 
 		$builder->where('id', 1)->update(['name' => 'Programmer'], null, null, true);
 
-		$expectedSQL = "UPDATE \"jobs\" SET \"name\" = :name: WHERE \"id\" = :id:";
-		$expectedBinds = ['id' => 1, 'name' => 'Programmer'];
+		$expectedSQL   = 'UPDATE "jobs" SET "name" = \'Programmer\' WHERE "id" = 1';
+		$expectedBinds = [
+			'id'   => 1,
+			'name' => 'Programmer',
+		];
 
 		$this->assertEquals($expectedSQL, str_replace("\n", ' ', $builder->getCompiledUpdate()));
 		$this->assertEquals($expectedBinds, $builder->getBinds());
@@ -38,8 +43,11 @@ class UpdateTest extends \CIUnitTestCase
 
 		$builder->update(['name' => 'Programmer'], ['id' => 1], 5, true);
 
-		$expectedSQL = "UPDATE \"jobs\" SET \"name\" = :name: WHERE \"id\" = :id:  LIMIT 5";
-		$expectedBinds = ['id' => 1, 'name' => 'Programmer'];
+		$expectedSQL   = 'UPDATE "jobs" SET "name" = \'Programmer\' WHERE "id" = 1  LIMIT 5';
+		$expectedBinds = [
+			'id'   => 1,
+			'name' => 'Programmer',
+		];
 
 		$this->assertEquals($expectedSQL, str_replace("\n", ' ', $builder->getCompiledUpdate()));
 		$this->assertEquals($expectedBinds, $builder->getBinds());
@@ -53,8 +61,11 @@ class UpdateTest extends \CIUnitTestCase
 
 		$builder->set('name', 'Programmer')->where('id', 1)->update(null, null, null, true);
 
-		$expectedSQL = "UPDATE \"jobs\" SET \"name\" = :name: WHERE \"id\" = :id:";
-		$expectedBinds = ['id' => 1, 'name' => 'Programmer'];
+		$expectedSQL   = 'UPDATE "jobs" SET "name" = \'Programmer\' WHERE "id" = 1';
+		$expectedBinds = [
+			'id'   => 1,
+			'name' => 'Programmer',
+		];
 
 		$this->assertEquals($expectedSQL, str_replace("\n", ' ', $builder->getCompiledUpdate()));
 		$this->assertEquals($expectedBinds, $builder->getBinds());
@@ -78,18 +89,26 @@ class UpdateTest extends \CIUnitTestCase
 		$builder = new BaseBuilder('jobs', $this->db);
 
 		$updateData = [
-			['id' => 2, 'name' => 'Comedian', 'description' => 'Theres something in your teeth'],
-			['id' => 3, 'name' => 'Cab Driver', 'description' => 'Iam yellow'],
+			[
+				'id'          => 2,
+				'name'        => 'Comedian',
+				'description' => 'Theres something in your teeth',
+			],
+			[
+				'id'          => 3,
+				'name'        => 'Cab Driver',
+				'description' => 'Iam yellow',
+			],
 		];
 
 		$this->db->shouldReturn('execute', 1)
-		         ->shouldReturn('affectedRows', 1);
+				 ->shouldReturn('affectedRows', 1);
 
 		$builder->updateBatch($updateData, 'id');
 
 		$query = $this->db->getLastQuery();
 
-		$this->assertTrue($query instanceof MockQuery);
+		$this->assertInstanceOf(MockQuery::class, $query);
 
 		$expected = 'UPDATE "jobs" SET "name" = CASE 
 WHEN "id" = :id: THEN :name:
@@ -158,8 +177,11 @@ WHERE "id" IN(2,3)';
 
 		$builder->update(['name' => 'foobar'], ['name' => 'Programmer'], null, true);
 
-		$expectedSQL = 'UPDATE "jobs" SET "name" = :name: WHERE "name" = :name0:';
-		$expectedBinds = ['name' => 'foobar', 'name0' => 'Programmer'];
+		$expectedSQL   = 'UPDATE "jobs" SET "name" = \'foobar\' WHERE "name" = \'Programmer\'';
+		$expectedBinds = [
+			'name'  => 'foobar',
+			'name0' => 'Programmer',
+		];
 
 		$this->assertEquals($expectedSQL, str_replace("\n", ' ', $builder->getCompiledUpdate()));
 		$this->assertEquals($expectedBinds, $builder->getBinds());
@@ -176,8 +198,11 @@ WHERE "id" IN(2,3)';
 			->where('name', 'Programmer')
 			->update(null, null, null, true);
 
-		$expectedSQL = 'UPDATE "jobs" SET "name" = :name: WHERE "name" = :name0:';
-		$expectedBinds = ['name' => 'foobar', 'name0' => 'Programmer'];
+		$expectedSQL   = 'UPDATE "jobs" SET "name" = \'foobar\' WHERE "name" = \'Programmer\'';
+		$expectedBinds = [
+			'name'  => 'foobar',
+			'name0' => 'Programmer',
+		];
 
 		$this->assertEquals($expectedSQL, str_replace("\n", ' ', $builder->getCompiledUpdate()));
 		$this->assertEquals($expectedBinds, $builder->getBinds());
@@ -193,8 +218,11 @@ WHERE "id" IN(2,3)';
 		$builder->where('name', 'Programmer')
 			->update(['name' => 'foobar'], null, null, true);
 
-		$expectedSQL = 'UPDATE "jobs" SET "name" = :name0: WHERE "name" = :name:';
-		$expectedBinds = ['name' => 'Programmer', 'name0' => 'foobar'];
+		$expectedSQL   = 'UPDATE "jobs" SET "name" = \'foobar\' WHERE "name" = \'Programmer\'';
+		$expectedBinds = [
+			'name'  => 'Programmer',
+			'name0' => 'foobar',
+		];
 
 		$this->assertEquals($expectedSQL, str_replace("\n", ' ', $builder->getCompiledUpdate()));
 		$this->assertEquals($expectedBinds, $builder->getBinds());
@@ -202,7 +230,7 @@ WHERE "id" IN(2,3)';
 
 	//--------------------------------------------------------------------
 
-	// @see https://bcit-ci.github.io/CodeIgniter4/database/query_builder.html#updating-data
+	// @see https://codeigniter4.github.io/CodeIgniter4/database/query_builder.html#updating-data
 	public function testSetWithoutEscape()
 	{
 		$builder = new BaseBuilder('mytable', $this->db);
@@ -211,7 +239,7 @@ WHERE "id" IN(2,3)';
 			->where('id', 2)
 			->update(null, null, null, true);
 
-		$expectedSQL = 'UPDATE "mytable" SET field = field+1 WHERE "id" = :id:';
+		$expectedSQL   = 'UPDATE "mytable" SET field = field+1 WHERE "id" = 2';
 		$expectedBinds = ['id' => 2];
 
 		$this->assertEquals($expectedSQL, str_replace("\n", ' ', $builder->getCompiledUpdate()));

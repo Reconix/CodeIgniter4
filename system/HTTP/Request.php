@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2019 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,18 +27,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	CodeIgniter
- * @author	CodeIgniter Dev Team
- * @copyright	2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
 
 /**
  * Representation of an iHTTP request.
- *
  */
 class Request extends Message implements RequestInterface
 {
@@ -64,6 +63,14 @@ class Request extends Message implements RequestInterface
 	 */
 	protected $method;
 
+	/**
+	 * Stores values we've retrieved from
+	 * PHP globals.
+	 *
+	 * @var array
+	 */
+	protected $globals = [];
+
 	//--------------------------------------------------------------------
 
 	/**
@@ -87,13 +94,13 @@ class Request extends Message implements RequestInterface
 	 */
 	public function getIPAddress(): string
 	{
-		if ( ! empty($this->ipAddress))
+		if (! empty($this->ipAddress))
 		{
 			return $this->ipAddress;
 		}
 
 		$proxy_ips = $this->proxyIPs;
-		if ( ! empty($this->proxyIPs) && ! is_array($this->proxyIPs))
+		if (! empty($this->proxyIPs) && ! is_array($this->proxyIPs))
 		{
 			$proxy_ips = explode(',', str_replace(' ', '', $this->proxyIPs));
 		}
@@ -104,16 +111,16 @@ class Request extends Message implements RequestInterface
 		{
 			foreach (['HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'HTTP_X_CLIENT_IP', 'HTTP_X_CLUSTER_CLIENT_IP'] as $header)
 			{
-				if (($spoof = $this->getServer($header)) !== NULL)
+				if (($spoof = $this->getServer($header)) !== null)
 				{
 					// Some proxies typically list the whole chain of IP
 					// addresses through which the client has reached us.
 					// e.g. client_ip, proxy_ip1, proxy_ip2, etc.
 					sscanf($spoof, '%[^,]', $spoof);
 
-					if ( ! $this->isValidIP($spoof))
+					if (! $this->isValidIP($spoof))
 					{
-						$spoof = NULL;
+						$spoof = null;
 					}
 					else
 					{
@@ -124,10 +131,10 @@ class Request extends Message implements RequestInterface
 
 			if ($spoof)
 			{
-				for ($i = 0, $c = count($this->proxyIPs); $i < $c; $i ++ )
+				for ($i = 0, $c = count($proxy_ips); $i < $c; $i ++)
 				{
 					// Check if we have an IP address or a subnet
-					if (strpos($proxy_ips[$i], '/') === FALSE)
+					if (strpos($proxy_ips[$i], '/') === false)
 					{
 						// An IP address (and not a subnet) is specified.
 						// We can compare right away.
@@ -141,16 +148,16 @@ class Request extends Message implements RequestInterface
 					}
 
 					// We have a subnet ... now the heavy lifting begins
-					isset($separator) OR $separator = $this->isValidIP($this->ipAddress, 'ipv6') ? ':' : '.';
+					isset($separator) || $separator = $this->isValidIP($this->ipAddress, 'ipv6') ? ':' : '.';
 
 					// If the proxy entry doesn't match the IP protocol - skip it
-					if (strpos($proxy_ips[$i], $separator) === FALSE)
+					if (strpos($proxy_ips[$i], $separator) === false)
 					{
 						continue;
 					}
 
 					// Convert the REMOTE_ADDR IP address to binary, if needed
-					if ( ! isset($ip, $sprintf))
+					if (! isset($ip, $sprintf))
 					{
 						if ($separator === ':')
 						{
@@ -159,7 +166,7 @@ class Request extends Message implements RequestInterface
 									)
 							);
 
-							for ($j = 0; $j < 8; $j ++ )
+							for ($j = 0; $j < 8; $j ++)
 							{
 								$ip[$j] = intval($ip[$j], 16);
 							}
@@ -168,7 +175,7 @@ class Request extends Message implements RequestInterface
 						}
 						else
 						{
-							$ip = explode('.', $this->ipAddress);
+							$ip      = explode('.', $this->ipAddress);
 							$sprintf = '%08b%08b%08b%08b';
 						}
 
@@ -182,7 +189,7 @@ class Request extends Message implements RequestInterface
 					if ($separator === ':')
 					{
 						$netaddr = explode(':', str_replace('::', str_repeat(':', 9 - substr_count($netaddr, ':')), $netaddr));
-						for ($i = 0; $i < 8; $i ++ )
+						for ($i = 0; $i < 8; $i ++)
 						{
 							$netaddr[$i] = intval($netaddr[$i], 16);
 						}
@@ -202,7 +209,7 @@ class Request extends Message implements RequestInterface
 			}
 		}
 
-		if ( ! $this->isValidIP($this->ipAddress))
+		if (! $this->isValidIP($this->ipAddress))
 		{
 			return $this->ipAddress = '0.0.0.0';
 		}
@@ -215,12 +222,12 @@ class Request extends Message implements RequestInterface
 	/**
 	 * Validate an IP address
 	 *
-	 * @param string $ip     IP Address
-	 * @param string $which  IP protocol: 'ipv4' or 'ipv6'
+	 * @param string $ip    IP Address
+	 * @param string $which IP protocol: 'ipv4' or 'ipv6'
 	 *
-	 * @return bool
+	 * @return boolean
 	 */
-	public function isValidIP(string $ip, string $which = null): bool
+	public function isValidIP(string $ip = null, string $which = null): bool
 	{
 		switch (strtolower($which))
 		{
@@ -231,7 +238,7 @@ class Request extends Message implements RequestInterface
 				$which = FILTER_FLAG_IPV6;
 				break;
 			default:
-				$which = NULL;
+				$which = null;
 				break;
 		}
 
@@ -243,7 +250,7 @@ class Request extends Message implements RequestInterface
 	/**
 	 * Get the request method.
 	 *
-	 * @param bool $upper Whether to return in upper or lower case.
+	 * @param boolean $upper Whether to return in upper or lower case.
 	 *
 	 * @return string
 	 */
@@ -273,15 +280,15 @@ class Request extends Message implements RequestInterface
 	/**
 	 * Fetch an item from the $_SERVER array.
 	 *
-	 * @param int|null $index  Index for item to be fetched from $_SERVER
-	 * @param int|null $filter A filter name to be applied
-	 * @param null     $flags
+	 * @param integer|null $index  Index for item to be fetched from $_SERVER
+	 * @param integer|null $filter A filter name to be applied
+	 * @param null         $flags
 	 *
 	 * @return mixed
 	 */
 	public function getServer($index = null, $filter = null, $flags = null)
 	{
-		return $this->fetchGlobal(INPUT_SERVER, $index, $filter, $flags);
+		return $this->fetchGlobal('server', $index, $filter, $flags);
 	}
 
 	//--------------------------------------------------------------------
@@ -297,7 +304,24 @@ class Request extends Message implements RequestInterface
 	 */
 	public function getEnv($index = null, $filter = null, $flags = null)
 	{
-		return $this->fetchGlobal(INPUT_ENV, $index, $filter, $flags);
+		return $this->fetchGlobal('env', $index, $filter, $flags);
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Allows manually setting the value of PHP global, like $_GET, $_POST, etc.
+	 *
+	 * @param string $method
+	 * @param $value
+	 *
+	 * @return $this
+	 */
+	public function setGlobal(string $method, $value)
+	{
+		$this->globals[$method] = $value;
+
+		return $this;
 	}
 
 	//--------------------------------------------------------------------
@@ -312,45 +336,37 @@ class Request extends Message implements RequestInterface
 	 *
 	 * http://php.net/manual/en/filter.filters.sanitize.php
 	 *
-	 * @param int          $type   Input filter constant
+	 * @param integer      $method Input filter constant
 	 * @param string|array $index
-	 * @param int          $filter Filter constant
+	 * @param integer      $filter Filter constant
 	 * @param null         $flags
 	 *
 	 * @return mixed
 	 */
-	protected function fetchGlobal($type, $index = null, $filter = null, $flags = null )
+	public function fetchGlobal($method, $index = null, $filter = null, $flags = null)
 	{
+		$method = strtolower($method);
+
+		if (! isset($this->globals[$method]))
+		{
+			$this->populateGlobals($method);
+		}
+
 		// Null filters cause null values to return.
 		if (is_null($filter))
 		{
 			$filter = FILTER_DEFAULT;
 		}
 
-		$loopThrough = [];
-		switch ($type)
-		{
-			case INPUT_GET : $loopThrough = $_GET;
-				break;
-			case INPUT_POST : $loopThrough = $_POST;
-				break;
-			case INPUT_COOKIE : $loopThrough = $_COOKIE;
-				break;
-			case INPUT_SERVER : $loopThrough = $_SERVER;
-				break;
-			case INPUT_ENV : $loopThrough = $_ENV;
-				break;
-			case INPUT_REQUEST : $loopThrough = $_REQUEST;
-				break;
-		}
-
-		// If $index is null, it means that the whole input type array is requested
+		// Return all values when $index is null
 		if (is_null($index))
 		{
 			$values = [];
-			foreach ($loopThrough as $key => $value)
+			foreach ($this->globals[$method] as $key => $value)
 			{
-				$values[$key] = is_array($value) ? $this->fetchGlobal($type, $key, $filter, $flags) : filter_var($value, $filter, $flags);
+				$values[$key] = is_array($value)
+					? $this->fetchGlobal($method, $key, $filter, $flags)
+					: filter_var($value, $filter, $flags);
 			}
 
 			return $values;
@@ -363,7 +379,7 @@ class Request extends Message implements RequestInterface
 
 			foreach ($index as $key)
 			{
-				$output[$key] = $this->fetchGlobal($type, $key, $filter, $flags);
+				$output[$key] = $this->fetchGlobal($method, $key, $filter, $flags);
 			}
 
 			return $output;
@@ -372,7 +388,7 @@ class Request extends Message implements RequestInterface
 		// Does the index contain array notation?
 		if (($count = preg_match_all('/(?:^[^\[]+)|\[[^]]*\]/', $index, $matches)) > 1)
 		{
-			$value = $loopThrough;
+			$value = $this->globals[$method];
 			for ($i = 0; $i < $count; $i++)
 			{
 				$key = trim($matches[0][$i], '[]');
@@ -393,14 +409,12 @@ class Request extends Message implements RequestInterface
 			}
 		}
 
-		// Due to issues with FastCGI and testing,
-		// we need to do these all manually instead
-		// of the simpler filter_input();
 		if (empty($value))
 		{
-			$value = $loopThrough[$index] ?? null;
+			$value = $this->globals[$method][$index] ?? null;
 		}
 
+		// Cannot filter these types of data automatically...
 		if (is_array($value) || is_object($value) || is_null($value))
 		{
 			return $value;
@@ -410,4 +424,39 @@ class Request extends Message implements RequestInterface
 	}
 
 	//--------------------------------------------------------------------
+
+	/**
+	 * Saves a copy of the current state of one of several PHP globals
+	 * so we can retrieve them later.
+	 *
+	 * @param string $method
+	 */
+	protected function populateGlobals(string $method)
+	{
+		if (! isset($this->globals[$method]))
+		{
+			$this->globals[$method] = [];
+		}
+
+		// Don't populate ENV as it might contain
+		// sensitive data that we don't want to get logged.
+		switch($method)
+		{
+			case 'get':
+				$this->globals['get'] = $_GET;
+				break;
+			case 'post':
+				$this->globals['post'] = $_POST;
+				break;
+			case 'request':
+				$this->globals['request'] = $_REQUEST;
+				break;
+			case 'cookie':
+				$this->globals['cookie'] = $_COOKIE;
+				break;
+			case 'server':
+				$this->globals['server'] = $_SERVER;
+				break;
+		}
+	}
 }

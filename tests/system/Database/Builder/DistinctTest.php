@@ -1,7 +1,7 @@
 <?php namespace Builder;
 
 use CodeIgniter\Database\BaseBuilder;
-use CodeIgniter\Database\MockConnection;
+use Tests\Support\Database\MockConnection;
 
 class DistinctTest extends \CIUnitTestCase
 {
@@ -9,8 +9,10 @@ class DistinctTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
-	public function setUp()
+	protected function setUp()
 	{
+		parent::setUp();
+
 		$this->db = new MockConnection([]);
 	}
 
@@ -22,7 +24,7 @@ class DistinctTest extends \CIUnitTestCase
 
 		$builder->select('country')->distinct();
 
-		$expectedSQL   = "SELECT DISTINCT \"country\" FROM \"user\"";
+		$expectedSQL = 'SELECT DISTINCT "country" FROM "user"';
 
 		$this->assertEquals($expectedSQL, str_replace("\n", ' ', $builder->getCompiledSelect()));
 	}

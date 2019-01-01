@@ -7,8 +7,9 @@ fast and dynamic caching. All but file-based caching require specific
 server requirements, and a Fatal Exception will be thrown if server
 requirements are not met.
 
-.. contents:: Page Contents
-	:local:
+.. contents::
+    :local:
+    :depth: 2
 
 *************
 Example Usage
@@ -39,7 +40,7 @@ You can grab an instance of the cache engine directly through the Services class
 Configuring the Cache
 =====================
 
-All configuration for the cache engine is done in **application/Config/Cache.php**. In that file,
+All configuration for the cache engine is done in **app/Config/Cache.php**. In that file,
 the following items are available.
 
 **$handler**
@@ -211,7 +212,7 @@ File-based Caching
 Unlike caching from the Output Class, the driver file-based caching
 allows for pieces of view files to be cached. Use this with care, and
 make sure to benchmark your application, as a point can come where disk
-I/O will negate positive gains by caching.
+I/O will negate positive gains by caching. This require a writable cache directory to be really writable (0777).
 
 =================
 Memcached Caching

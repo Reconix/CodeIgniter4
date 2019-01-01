@@ -26,7 +26,6 @@ Available Functions
 
 The following functions are available:
 
-
 .. php:function:: directory_map($source_dir[, $directory_depth = 0[, $hidden = FALSE]])
 
 	:param	string	$source_dir: Path to the source directory
@@ -40,7 +39,6 @@ The following functions are available:
 		$map = directory_map('./mydirectory/');
 
 	.. note:: Paths are almost always relative to your main index.php file.
-
 
 	Sub-folders contained within the directory will be mapped as well. If
 	you wish to control the recursion depth, you can do so using the second
@@ -178,7 +176,7 @@ The following functions are available:
 
 		$models_info = get_dir_file_info(APPPATH.'models/');
 
-.. php:function:: get_file_info($file[, $returned_values = array('name', 'server_path', 'size', 'date')])
+.. php:function:: get_file_info($file[, $returned_values = ['name', 'server_path', 'size', 'date']])
 
 	:param	string	$file: File path
 	:param	array	$returned_values: What type of info to return

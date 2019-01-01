@@ -5,8 +5,10 @@ Global Functions and Constants
 CodeIgniter uses provides a few functions and variables that are globally defined, and are available to you at any point.
 These do not require loading any additional libraries or helpers.
 
-.. contents:: Page Contents
-	:local:
+.. contents::
+    :local:
+    :depth: 2
+
 
 ================
 Global Functions
@@ -63,7 +65,7 @@ Service Accessors
 
 .. php:function:: helper( $filename )
 
-	:param   string   $filename: The name of the helper file to load.
+	:param   string|array  $filename: The name of the helper file to load, or an array of names.
 
 	Loads a helper file.
 
@@ -76,7 +78,35 @@ Service Accessors
 
 	Retrieves a locale-specific file based on an alias string.
 
-	For more information, see the :doc:`Localization </libraries/localization>` page.
+	For more information, see the :doc:`Localization </outgoing/localization>` page.
+
+.. php:function:: old( $key[, $default = null, [, $escape = 'html' ]] )
+
+	:param string $key: The name of the old form data to check for.
+	:param mixed  $default: The default value to return if $key doesn't exist.
+	:param mixed  $escape: An `escape <#esc>`_ context or false to disable it.
+	:returns: The value of the defined key, or the default value.
+	:rtype: mixed
+
+	Provides a simple way to access "old input data" from submitting a form.
+
+	Example::
+
+		// in controller, checking form submittal
+		if (! $model->save($user))
+		{
+			// 'withInput' is what specifies "old data"
+			// should be saved.
+			return redirect()->back()->withInput();
+		}
+
+		// In the view
+		<input type="email" name="email" value="<?= old('email') ?>">
+		// Or with arrays
+		<input type="email" name="user[email]" value="<?= old('user.email') ?>">
+
+.. note:: If you are using the :doc:`form helper </helpers/form_helper>`, this feature is built-in. You only
+		need to use this function when not using the form helper.
 
 .. php:function:: session( [$key] )
 
@@ -133,7 +163,7 @@ Service Accessors
 
 		echo view('user_profile', $data);
 
-	For more details, see the :doc:`Views <views>` page.
+	For more details, see the :doc:`Views </outgoing/views>` page.
 
 Miscellaneous Functions
 =======================
@@ -185,7 +215,7 @@ Miscellaneous Functions
 	:returns: TRUE if was logged succesfully or FALSE if there was a problem logging it
 	:rtype: bool
 
-	Logs a message using the Log Handlers defined in **application/Config/Logger.php**.
+	Logs a message using the Log Handlers defined in **app/Config/Logger.php**.
 
 	Level can be one of the following values: **emergency**, **alert**, **critical**, **error**, **warning**,
 	**notice**, **info**, or **debug**.
@@ -214,6 +244,11 @@ Miscellaneous Functions
 		// Set a flash message
 		return redirect()->back()->with('foo', 'message');
 
+	When passing a URI into the function, it is treated as a reverse-route request, not a relative/full URI, treating
+        it the same as using redirect()->route()::
+
+                // Go to a named/reverse-routed URI
+		return redirect('named_route');
 
 .. php:function:: remove_invisible_characters($str[, $url_encoded = TRUE])
 
@@ -238,7 +273,7 @@ Miscellaneous Functions
 	Generates a relative URI for you based on either a named route alias, or a controller::method
 	combination. Will take parameters into effect, if provided.
 
-	For full details, see the :doc:`routing` page.
+	For full details, see the :doc:`/incoming/routing` page.
 
 .. php:function:: service ( $name [, ...$params] )
 
@@ -276,7 +311,6 @@ Miscellaneous Functions
 
 	Helper function used to convert a string, array, or object of attributes to a string.
 
-
 ================
 Global Constants
 ================
@@ -286,15 +320,15 @@ The following constants are always available anywhere within your application.
 Core Constants
 ==============
 
-.. php:const:: ROOTPATH
-
-	The path to the main application directory. Just above ``public``.
-
 .. php:const:: APPPATH
 
-	The path to the **application** directory.
+	The path to the **app** directory.
 
-.. php:const:: BASEPATH
+.. php:const:: ROOTPATH
+
+	The path to the project root directory. Just above ``APPPATH``.
+
+.. php:const:: SYSTEMPATH
 
 	The path to the **system** directory.
 
@@ -302,14 +336,9 @@ Core Constants
 
 	The path to the directory that holds the front controller.
 
-.. php:const:: SELF
-
-	The path to the front controller, **index.php**.
-
 .. php:const:: WRITEPATH
 
 	The path to the **writable** directory.
-
 
 Time Constants
 ==============

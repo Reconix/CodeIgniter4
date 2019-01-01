@@ -9,7 +9,7 @@ use CodeIgniter\I18n\Time;
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2019 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,12 +29,12 @@ use CodeIgniter\I18n\Time;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	CodeIgniter
- * @author	CodeIgniter Dev Team
- * @copyright	2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
 class Entity
@@ -55,14 +55,34 @@ class Entity
 		/*
 		 * Define properties that are automatically converted to Time instances.
 		 */
-		'dates' => ['created_at', 'updated_at', 'deleted_at'],
+		'dates'   => [
+			'created_at',
+			'updated_at',
+			'deleted_at',
+		],
 
 		/*
 		 * Array of field names and the type of value to cast them as
 		 * when they are accessed.
 		 */
-		'casts' => []
+		'casts'   => [],
 	];
+
+	/**
+	 * Holds original copies of all class vars so
+	 * we can determine what's actually been changed
+	 * and not accidentally write nulls where we shouldn't.
+	 *
+	 * @var array
+	 */
+	protected $_original = [];
+
+	/**
+	 * Holds info whenever prperties have to be casted
+	 *
+	 * @var boolean
+	 **/
+	private $_cast = true;
 
 	/**
 	 * Allows filling in Entity parameters during construction.
@@ -71,6 +91,20 @@ class Entity
 	 */
 	public function __construct(array $data = null)
 	{
+		// Collect any original values of things
+		// so we can compare later to see what's changed
+		$properties = get_object_vars($this);
+
+		foreach ($properties as $key => $value)
+		{
+			if (substr($key, 0, 1) === '_')
+			{
+				unset($properties[$key]);
+			}
+		}
+
+		$this->_original = $properties;
+
 		if (is_array($data))
 		{
 			$this->fill($data);
@@ -83,11 +117,15 @@ class Entity
 	 * that may or may not exist.
 	 *
 	 * @param array $data
+	 *
+	 * @return \CodeIgniter\Entity
 	 */
 	public function fill(array $data)
 	{
 		foreach ($data as $key => $value)
 		{
+			$key = $this->mapProperty($key);
+
 			$method = 'set' . str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $key)));
 
 			if (method_exists($this, $method))
@@ -99,6 +137,57 @@ class Entity
 				$this->$key = $value;
 			}
 		}
+
+		return $this;
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * General method that will return all public and protected
+	 * values of this entity as an array. All values are accessed
+	 * through the __get() magic method so will have any casts, etc
+	 * applied to them.
+	 *
+	 * @param boolean $onlyChanged If true, only return values that have changed since object creation
+	 * @param boolean $cast        If true, properties will be casted.
+	 *
+	 * @return array
+	 */
+	public function toArray(bool $onlyChanged = false, bool $cast = true): array
+	{
+		$this->_cast = $cast;
+		$return      = [];
+
+		// we need to loop over our properties so that we
+		// allow our magic methods a chance to do their thing.
+		$properties = get_object_vars($this);
+
+		foreach ($properties as $key => $value)
+		{
+			if (substr($key, 0, 1) === '_')
+			{
+				continue;
+			}
+
+			if ($onlyChanged && $this->_original[$key] === null && $value === null)
+			{
+				continue;
+			}
+
+			$return[$key] = $this->__get($key);
+		}
+
+		// Loop over our mapped properties and add them to the list...
+		if (is_array($this->_options['datamap']))
+		{
+			foreach ($this->_options['datamap'] as $from => $to)
+			{
+				$return[$from] = $this->__get($to);
+			}
+		}
+		$this->_cast = true;
+		return $return;
 	}
 
 	//--------------------------------------------------------------------
@@ -124,8 +213,8 @@ class Entity
 		// Convert to CamelCase for the method
 		$method = 'get' . str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $key)));
 
-		// if a set* method exists for this key, 
-		// use that method to insert this value. 
+		// if a set* method exists for this key,
+		// use that method to insert this value.
 		if (method_exists($this, $method))
 		{
 			$result = $this->$method();
@@ -144,7 +233,7 @@ class Entity
 			$result = $this->mutateDate($result);
 		}
 		// Or cast it as something?
-		else if (array_key_exists($key, $this->_options['casts']))
+		else if ($this->_cast && isset($this->_options['casts'][$key]) && ! empty($this->_options['casts'][$key]))
 		{
 			$result = $this->castAs($result, $this->_options['casts'][$key]);
 		}
@@ -186,8 +275,16 @@ class Entity
 			$value = serialize($value);
 		}
 
-		// if a set* method exists for this key, 
-		// use that method to insert this value. 
+		// JSON casting requires that we JSONize the value
+		// when setting it so that it can easily be stored
+		// back to the database.
+		if (function_exists('json_encode') && array_key_exists($key, $this->_options['casts']) && ($this->_options['casts'][$key] === 'json' || $this->_options['casts'][$key] === 'json-array'))
+		{
+			$value = json_encode($value);
+		}
+
+		// if a set* method exists for this key,
+		// use that method to insert this value.
 		$method = 'set' . str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $key)));
 		if (method_exists($this, $method))
 		{
@@ -220,14 +317,16 @@ class Entity
 	{
 		// If not actual property exists, get out
 		// before we confuse our data mapping.
-		if ( ! property_exists($this, $key))
+		if (! property_exists($this, $key))
+		{
 			return;
+		}
 
 		$this->$key = null;
 
 		// Get the class' original default value for this property
 		// so we can reset it to the original value.
-		$reflectionClass = new \ReflectionClass($this);
+		$reflectionClass   = new \ReflectionClass($this);
 		$defaultProperties = $reflectionClass->getDefaultProperties();
 
 		if (isset($defaultProperties[$key]))
@@ -244,7 +343,7 @@ class Entity
 	 *
 	 * @param string $key
 	 *
-	 * @return bool
+	 * @return boolean
 	 */
 	public function __isset(string $key): bool
 	{
@@ -267,7 +366,12 @@ class Entity
 	 */
 	protected function mapProperty(string $key)
 	{
-		if (array_key_exists($key, $this->_options['datamap']))
+		if (empty($this->_options['datamap']))
+		{
+			return $key;
+		}
+
+		if (isset($this->_options['datamap'][$key]) && ! empty($this->_options['datamap'][$key]))
 		{
 			return $this->_options['datamap'][$key];
 		}
@@ -314,17 +418,29 @@ class Entity
 
 	/**
 	 * Provides the ability to cast an item as a specific data type.
+	 * Add ? at the beginning of $type  (i.e. ?string) to get NULL instead of castig $value if $value === null
 	 *
-	 * @param        $value
+	 * @param $value
 	 * @param string $type
 	 *
 	 * @return mixed
 	 */
+
 	protected function castAs($value, string $type)
 	{
+		if(substr($type,0,1) === '?')
+		{
+			if($value === null)
+			{
+				return null;
+			}
+			$type = substr($type,1);
+		}
+
 		switch($type)
 		{
-			case 'integer':
+			case 'int':
+			case 'integer': //alias for 'integer'
 				$value = (int)$value;
 				break;
 			case 'float':
@@ -336,21 +452,26 @@ class Entity
 			case 'string':
 				$value = (string)$value;
 				break;
-			case 'boolean':
+			case 'bool':
+			case 'boolean': //alias for 'boolean'
 				$value = (bool)$value;
 				break;
 			case 'object':
 				$value = (object)$value;
 				break;
 			case 'array':
-				if (is_string($value) && (substr($value, 0, 2) === 'a:' || substr($value, 0, 2) === 's:'))
+				if (is_string($value) && (strpos($value, 'a:') === 0 || strpos($value, 's:') === 0))
 				{
 					$value = unserialize($value);
 				}
-				else
-				{
-					$value = (object)$value;
-				}
+
+				$value = (array)$value;
+				break;
+			case 'json':
+				$value = $this->castAsJson($value, false);
+				break;
+			case 'json-array':
+				$value = $this->castAsJson($value, true);
 				break;
 			case 'datetime':
 				return new \DateTime($value);
@@ -361,5 +482,33 @@ class Entity
 		}
 
 		return $value;
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Cast as JSON
+	 *
+	 * @param mixed   $value
+	 * @param boolean $asArray
+	 *
+	 * @return mixed
+	 */
+	private function castAsJson($value, bool $asArray = false)
+	{
+		$tmp = ! is_null($value) ? ($asArray ? [] : new \stdClass) : null;
+		if (function_exists('json_decode'))
+		{
+			if ((is_string($value) && (strpos($value, '[') === 0 || strpos($value, '{') === 0 || (strpos($value, '"') === 0 && strrpos($value, '"') === 0 ))) || is_numeric($value))
+			{
+				$tmp = json_decode($value, $asArray);
+
+				if (json_last_error() !== JSON_ERROR_NONE)
+				{
+					throw CastException::forInvalidJsonFormatException(json_last_error());
+				}
+			}
+		}
+		return $tmp;
 	}
 }

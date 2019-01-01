@@ -10,10 +10,10 @@ hard-coding that location into your files in a series of ``requires()`` is a mas
 headache and very error-prone. That's where autoloaders come in.
 
 CodeIgniter provides a very flexible autoloader that can be used with very little configuration.
-It can locate individual non-namespaced classes, namespaced classes that adhere to 
+It can locate individual non-namespaced classes, namespaced classes that adhere to
 `PSR4 <http://www.php-fig.org/psr/psr-4/>`_ autoloading
 directory structures, and will even attempt to locate classes in common directories (like Controllers,
-Models, etc). 
+Models, etc).
 
 For performance improvement, the core CodeIgniter components have been added to the classmap.
 
@@ -29,7 +29,7 @@ beginning of the framework's execution.
 Configuration
 =============
 
-Initial configuration is done in **/application/Config/Autoload.php**. This file contains two primary
+Initial configuration is done in **/app/Config/Autoload.php**. This file contains two primary
 arrays: one for the classmap, and one for PSR4-compatible namespaces.
 
 Namespaces
@@ -42,7 +42,7 @@ those classes can be found in::
 
 	$psr4 = [
 		'App'         => APPPATH,
-		'CodeIgniter' => BASEPATH,
+		'CodeIgniter' => SYSTEMPATH,
 	];
 
 The key of each row is the namespace itself. This does not need a trailing slash. If you use double-quotes
@@ -52,7 +52,7 @@ have a trailing slash.
 
 By default, the application folder is namespace to the ``App`` namespace. While you are not forced to namespace the controllers,
 libraries, or models in the application directory, if you do, they will be found under the ``App`` namespace.
-You may change this namespace by editing the **/application/Config/Constants.php** file and setting the
+You may change this namespace by editing the **/app/Config/Constants.php** file and setting the
 new namespace value under the ``APP_NAMESPACE`` setting::
 
 	define('APP_NAMESPACE', 'App');
@@ -67,7 +67,7 @@ Classmap
 ========
 
 The classmap is used extensively by CodeIgniter to eke the last ounces of performance out of the system
-by not hitting the file-system with extra ``file_exists()`` calls. You can use the classmap to link to
+by not hitting the file-system with extra ``is_file()`` calls. You can use the classmap to link to
 third-party libraries that are not namespaced::
 
 	$classmap = [
@@ -80,7 +80,7 @@ Legacy Support
 ==============
 
 If neither of the above methods find the class, and the class is not namespaced, the autoloader will look in the
-**/application/Libraries** and **/application/Models** directories to attempt to locate the files. This provides
+**/app/Libraries** and **/app/Models** directories to attempt to locate the files. This provides
 a measure to help ease the transition from previous versions.
 
 There are no configuration options for legacy support.
