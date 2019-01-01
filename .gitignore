@@ -42,22 +42,27 @@ $RECYCLE.BIN/
 # These should never be under version control,
 # as it poses a security risk.
 .env
-application/.env
+.vagrant
+Vagrantfile
 
 #-------------------------
 # Temporary Files
 #-------------------------
 writable/cache/*
 !writable/cache/index.html
-!writable/cache/.htaccess
 
 writable/logs/*
 !writable/logs/index.html
-!writable/logs/.htaccess
+
+writable/session/*
+!writable/session/index.html
 
 writable/uploads/*
 !writable/uploads/index.html
-!writable/uploads/.htaccess
+
+writable/debugbar/*
+
+php_errors.log
 
 #-------------------------
 # User Guide Temp Files
@@ -88,6 +93,9 @@ composer.lock
 # Modules Testing
 _modules/*
 
+# phpenv local config
+.php-version
+
 # Jetbrains editors (PHPStorm, etc)
 .idea/
 *.iml
@@ -102,10 +110,17 @@ nbactions.xml
 nb-configuration.xml
 .nb-gradle/
 
-## Sublime Text
+# Sublime Text
 *.tmlanguage.cache
 *.tmPreferences.cache
 *.stTheme.cache
 *.sublime-workspace
 *.sublime-project
+.phpintel
 /api/
+
+# Visual Studio Code
+.vscode/
+
+/results/
+/phpunit*.xml

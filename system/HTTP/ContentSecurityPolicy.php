@@ -1,4 +1,5 @@
-<?php namespace CodeIgniter\HTTP;
+<?php
+namespace CodeIgniter\HTTP;
 
 /**
  * CodeIgniter
@@ -7,7 +8,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,16 +28,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	CodeIgniter
- * @author	CodeIgniter Dev Team
- * @copyright	Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	http://codeigniter.com
- * @since	Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
-
-use Config\ContentSecurityPolicy;
 
 /**
  * Class ContentSecurityPolicy
@@ -52,119 +51,167 @@ use Config\ContentSecurityPolicy;
  */
 class ContentSecurityPolicy
 {
+
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
 	protected $baseURI = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
 	protected $childSrc = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
 	protected $connectSrc = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
 	protected $defaultSrc = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
 	protected $fontSrc = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
 	protected $formAction = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var type
 	 */
-	protected $frameAncestors = null;
+	protected $frameAncestors = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
 	protected $imageSrc = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
 	protected $mediaSrc = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
 	protected $objectSrc = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
-	protected $pluginTypes = null;
+	protected $pluginTypes = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var string
 	 */
 	protected $reportURI = null;
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
-	protected $sandbox = false;
+	protected $sandbox = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
 	protected $scriptSrc = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
 	protected $styleSrc = [];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
+	 */
+	protected $manifestSrc = [];
+
+	/**
+	 * Used for security enforcement
+	 *
+	 * @var boolean
 	 */
 	protected $upgradeInsecureRequests = false;
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var boolean
 	 */
 	protected $reportOnly = false;
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
-	protected $validSources = ['self', 'none', 'unsafe-inline', 'unsafe-eval'];
+	protected $validSources = [
+		'self',
+		'none',
+		'unsafe-inline',
+		'unsafe-eval',
+	];
 
 	/**
 	 * Used for security enforcement
-	 * @var type 
+	 *
+	 * @var array
 	 */
 	protected $nonces = [];
+
+	/**
+	 * An array of header info since we have
+	 * to build ourself before passing to Response.
+	 *
+	 * @var array
+	 */
+	protected $tempHeaders = [];
+
+	/**
+	 * An array of header info to build
+	 * that should only be reported.
+	 *
+	 * @var array
+	 */
+	protected $reportOnlyHeaders = [];
 
 	//--------------------------------------------------------------------
 
@@ -173,9 +220,9 @@ class ContentSecurityPolicy
 	 *
 	 * Stores our default values from the Config file.
 	 *
-	 * @param ContentSecurityPolicy $config
+	 * @param \Config\ContentSecurityPolicy $config
 	 */
-	public function __construct(ContentSecurityPolicy $config)
+	public function __construct(\Config\ContentSecurityPolicy $config)
 	{
 		foreach ($config as $setting => $value)
 		{
@@ -204,10 +251,6 @@ class ContentSecurityPolicy
 
 	//--------------------------------------------------------------------
 
-	//--------------------------------------------------------------------
-	// Setters
-	//--------------------------------------------------------------------
-
 	/**
 	 * If TRUE, nothing will be restricted. Instead all violations will
 	 * be reported to the reportURI for monitoring. This is useful when
@@ -215,7 +258,7 @@ class ContentSecurityPolicy
 	 * determine what errors need to be addressed before you turn on
 	 * all filtering.
 	 *
-	 * @param bool|true $value
+	 * @param boolean|true $value
 	 *
 	 * @return $this
 	 */
@@ -229,20 +272,20 @@ class ContentSecurityPolicy
 	//--------------------------------------------------------------------
 
 	/**
-	 * Sets the base_uri value. Can be either a URI class or a simple string.
+	 * Adds a new base_uri value. Can be either a URI class or a simple string.
 	 *
 	 * base_uri restricts the URLs that can appear in a page’s <base> element.
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-base-uri
 	 *
-	 * @param string $uri
-	 * @param bool $reportOnly
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function setBaseURI($uri, bool $reportOnly)
+	public function addBaseURI($uri, ?bool $explicitReporting = null)
 	{
-		$this->baseURI = [(string)$uri => $reportOnly];
+		$this->addOption($uri, 'baseURI', $explicitReporting ?? $this->reportOnly);
 
 		return $this;
 	}
@@ -259,14 +302,14 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-child-src
 	 *
-	 * @param      $uri
-	 * @param bool $reportOnly
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function addChildSrc($uri, bool $reportOnly = false)
+	public function addChildSrc($uri, ?bool $explicitReporting = null)
 	{
-		$this->addOption($uri, 'childSrc', $reportOnly);
+		$this->addOption($uri, 'childSrc', $explicitReporting ?? $this->reportOnly);
 
 		return $this;
 	}
@@ -282,14 +325,14 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-connect-src
 	 *
-	 * @param      $uri
-	 * @param bool $reportOnly
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function addConnectSrc($uri, bool $reportOnly = false)
+	public function addConnectSrc($uri, ?bool $explicitReporting = null)
 	{
-		$this->addOption($uri, 'connectSrc', $reportOnly);
+		$this->addOption($uri, 'connectSrc', $explicitReporting ?? $this->reportOnly);
 
 		return $this;
 	}
@@ -305,14 +348,14 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-default-src
 	 *
-	 * @param      $uri
-	 * @param bool $reportOnly
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function setDefaultSrc($uri, bool $reportOnly = false)
+	public function setDefaultSrc($uri, ?bool $explicitReporting = null)
 	{
-		$this->defaultSrc = [(string)$uri => $reportOnly];
+		$this->defaultSrc = [(string) $uri => $explicitReporting ?? $this->reportOnly];
 
 		return $this;
 	}
@@ -327,14 +370,14 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-font-src
 	 *
-	 * @param      $uri
-	 * @param bool $reportOnly
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function addFontSrc($uri, bool $reportOnly = false)
+	public function addFontSrc($uri, ?bool $explicitReporting = null)
 	{
-		$this->addOption($uri, 'fontSrc', $reportOnly);
+		$this->addOption($uri, 'fontSrc', $explicitReporting ?? $this->reportOnly);
 
 		return $this;
 	}
@@ -347,14 +390,14 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-form-action
 	 *
-	 * @param      $uri
-	 * @param bool $reportOnly
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function addFormAction($uri, bool $reportOnly = false)
+	public function addFormAction($uri, ?bool $explicitReporting = null)
 	{
-		$this->addOption($uri, 'formAction', $reportOnly);
+		$this->addOption($uri, 'formAction', $explicitReporting ?? $this->reportOnly);
 
 		return $this;
 	}
@@ -367,14 +410,14 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-frame-ancestors
 	 *
-	 * @param      $uri
-	 * @param bool $reportOnly
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function addFrameAncestor($uri, bool $reportOnly = false)
+	public function addFrameAncestor($uri, ?bool $explicitReporting = null)
 	{
-		$this->addOption($uri, 'frameAncestors', $reportOnly);
+		$this->addOption($uri, 'frameAncestors', $explicitReporting ?? $this->reportOnly);
 
 		return $this;
 	}
@@ -387,14 +430,14 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-img-src
 	 *
-	 * @param      $uri
-	 * @param bool $reportOnly
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function addImageSrc($uri, bool $reportOnly = false)
+	public function addImageSrc($uri, ?bool $explicitReporting = null)
 	{
-		$this->addOption($uri, 'imageSrc', $reportOnly);
+		$this->addOption($uri, 'imageSrc', $explicitReporting ?? $this->reportOnly);
 
 		return $this;
 	}
@@ -407,14 +450,34 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-media-src
 	 *
-	 * @param      $uri
-	 * @param bool $reportOnly
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function addMediaSrc($uri, bool $reportOnly = false)
+	public function addMediaSrc($uri, ?bool $explicitReporting = null)
 	{
-		$this->addOption($uri, 'mediaSrc', $reportOnly);
+		$this->addOption($uri, 'mediaSrc', $explicitReporting ?? $this->reportOnly);
+
+		return $this;
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Adds a new valid endpoint for manifest sources. Can be either
+	 * a URI class or simple string.
+	 *
+	 * @see https://www.w3.org/TR/CSP/#directive-manifest-src
+	 *
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
+	 *
+	 * @return $this
+	 */
+	public function addManifestSrc($uri, ?bool $explicitReporting = null)
+	{
+		$this->addOption($uri, 'manifestSrc', $explicitReporting ?? $this->reportOnly);
 
 		return $this;
 	}
@@ -427,14 +490,14 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-object-src
 	 *
-	 * @param      $uri
-	 * @param bool $reportOnly
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function addObjectSrc($uri, bool $reportOnly = false)
+	public function addObjectSrc($uri, ?bool $explicitReporting = null)
 	{
-		$this->addOption($uri, 'objectSrc', $reportOnly);
+		$this->addOption($uri, 'objectSrc', $explicitReporting ?? $this->reportOnly);
 
 		return $this;
 	}
@@ -447,14 +510,14 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-plugin-types
 	 *
-	 * @param string $mime One or more plugin mime types, separate by spaces
-	 * @param bool   $reportOnly
+	 * @param string|array $mime              One or more plugin mime types, separate by spaces
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function addPluginType($mime, bool $reportOnly = false)
+	public function addPluginType($mime, ?bool $explicitReporting = null)
 	{
-		$this->addOption($mime, 'pluginTypes', $reportOnly);
+		$this->addOption($mime, 'pluginTypes', $explicitReporting ?? $this->reportOnly);
 
 		return $this;
 	}
@@ -467,13 +530,13 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-report-uri
 	 *
-	 * @param $uri
+	 * @param string $uri
 	 *
 	 * @return $this
 	 */
 	public function setReportURI($uri)
 	{
-		$this->reportURI = (string)$uri;
+		$this->reportURI = (string) $uri;
 
 		return $this;
 	}
@@ -486,22 +549,14 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-sandbox
 	 *
-	 * @param bool  $value
-	 * @param array $flags An array of sandbox flags that can be added to the directive.
+	 * @param string|array $flags             An array of sandbox flags that can be added to the directive.
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function setSandbox(bool $value = true, array $flags = null)
+	public function addSandbox($flags, ?bool $explicitReporting = null)
 	{
-		if (empty($this->sandbox) && ! count($flags))
-		{
-			$this->sandbox = $value;
-		}
-		else
-		{
-			$this->sandbox = $flags;
-		}
-
+		$this->addOption($flags, 'sandbox', $explicitReporting ?? $this->reportOnly);
 		return $this;
 	}
 
@@ -513,14 +568,14 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-connect-src
 	 *
-	 * @param      $uri
-	 * @param bool $reportOnly
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function addScriptSrc($uri, bool $reportOnly = false)
+	public function addScriptSrc($uri, ?bool $explicitReporting = null)
 	{
-		$this->addOption($uri, 'scriptSrc', $reportOnly);
+		$this->addOption($uri, 'scriptSrc', $explicitReporting ?? $this->reportOnly);
 
 		return $this;
 	}
@@ -533,14 +588,14 @@ class ContentSecurityPolicy
 	 *
 	 * @see http://www.w3.org/TR/CSP/#directive-connect-src
 	 *
-	 * @param      $uri
-	 * @param bool $reportOnly
+	 * @param string|array $uri
+	 * @param boolean|null $explicitReporting
 	 *
 	 * @return $this
 	 */
-	public function addStyleSrc($uri, bool $reportOnly = false)
+	public function addStyleSrc($uri, ?bool $explicitReporting = null)
 	{
-		$this->addOption($uri, 'styleSrc', $reportOnly);
+		$this->addOption($uri, 'styleSrc', $explicitReporting ?? $this->reportOnly);
 
 		return $this;
 	}
@@ -551,7 +606,7 @@ class ContentSecurityPolicy
 	 * Sets whether the user agents should rewrite URL schemes, changing
 	 * HTTP to HTTPS.
 	 *
-	 * @param bool|true $value
+	 * @param boolean $value
 	 *
 	 * @return $this
 	 */
@@ -563,34 +618,34 @@ class ContentSecurityPolicy
 	}
 
 	//--------------------------------------------------------------------
-
-	//--------------------------------------------------------------------
 	// Utility
 	//--------------------------------------------------------------------
 
 	/**
 	 * DRY method to add an string or array to a class property.
 	 *
-	 * @param        $options
-	 * @param string $target
-	 * @param bool   $reportOnly If TRUE, this item will be reported, not restricted
+	 * @param string|array $options
+	 * @param string       $target
+	 * @param boolean|null $explicitReporting
 	 */
-	protected function addOption($options, string $target, bool $reportOnly = false)
+	protected function addOption($options, string $target, ?bool $explicitReporting = null)
 	{
+		// Ensure we have an array to work with...
+		if (is_string($this->{$target}))
+		{
+			$this->{$target} = [$this->{$target}];
+		}
+
 		if (is_array($options))
 		{
-			$newOptions = [];
 			foreach ($options as $opt)
 			{
-				$newOptions[] = [$opt => $reportOnly];
+				$this->{$target}[$opt] = $explicitReporting ?? $this->reportOnly;
 			}
-
-			$this->{$target} = array_merge($this->{$target}, $newOptions);
-			unset($newOptions);
 		}
 		else
 		{
-			$this->{$target}[] = [$options => $reportOnly];
+			$this->{$target}[$options] = $explicitReporting ?? $this->reportOnly;
 		}
 	}
 
@@ -601,43 +656,46 @@ class ContentSecurityPolicy
 	 * placeholders with actual nonces, that we'll then add to our
 	 * headers.
 	 *
-	 * @param ResponseInterface $response
+	 * @param ResponseInterface|\CodeIgniter\HTTP\Response $response
 	 */
 	protected function generateNonces(ResponseInterface &$response)
 	{
 		$body = $response->getBody();
 
-		if (empty($body)) return;
+		if (empty($body))
+		{
+			return;
+		}
 
-		if (! is_array($this->styleSrc)) $this->styleSrc = [$this->styleSrc];
-		if (! is_array($this->scriptSrc)) $this->scriptSrc = [$this->scriptSrc];
+		if (! is_array($this->styleSrc))
+		{
+			$this->styleSrc = [$this->styleSrc];
+		}
+		if (! is_array($this->scriptSrc))
+		{
+			$this->scriptSrc = [$this->scriptSrc];
+		}
 
 		// Replace style placeholders with nonces
 		$body = preg_replace_callback(
-			'/{csp-style-nonce}/',
-			function ($matches)
-			{
-				$nonce = bin2hex(random_bytes(12));
+				'/{csp-style-nonce}/', function ($matches) {
+					$nonce = bin2hex(random_bytes(12));
 
-				$this->styleSrc[] = 'nonce-'. $nonce;
+					$this->styleSrc[] = 'nonce-' . $nonce;
 
-				return 'nonce='.$nonce;
-			},
-			$body
+					return "nonce={$nonce}";
+				}, $body
 		);
 
 		// Replace script placeholders with nonces
 		$body = preg_replace_callback(
-				'/{csp-script-nonce}/',
-				function ($matches)
-				{
+				'/{csp-script-nonce}/', function ($matches) {
 					$nonce = bin2hex(random_bytes(12));
 
-					$this->scriptSrc[] = 'nonce-'. $nonce;
+					$this->scriptSrc[] = 'nonce-' . $nonce;
 
-					return 'nonce='.$nonce;
-				},
-				$body
+					return "nonce={$nonce}";
+				}, $body
 		);
 
 		$response->setBody($body);
@@ -650,7 +708,7 @@ class ContentSecurityPolicy
 	 * Content-Security-Policy and Content-Security-Policy-Report-Only headers
 	 * with their values to the response object.
 	 *
-	 * @param ResponseInterface $response
+	 * @param ResponseInterface|\CodeIgniter\HTTP\Response $response
 	 */
 	protected function buildHeaders(ResponseInterface &$response)
 	{
@@ -659,32 +717,74 @@ class ContentSecurityPolicy
 		$response->setHeader('Content-Security-Policy-Report-Only', []);
 
 		$directives = [
-			'base-uri' => 'baseURI',
-		    'child-src' => 'childSrc',
-		    'connect-src' => 'connectSrc',
-		    'default-src' => 'defaultSrc',
-		    'font-src' => 'fontSrc',
-		    'form-action' => 'formAction',
-		    'frame-ancestors' => 'frameAncestors',
-		    'img-src' => 'imageSrc',
-		    'media-src' => 'mediaSrc',
-		    'object-src' => 'objectSrc',
-		    'plugin-types' => 'pluginTypes',
-		    'script-src' => 'scriptSrc',
-		    'style-src' => 'styleSrc',
-		    'sandbox' => 'sandbox',
-		    'report-uri' => 'reportURI'
+			'base-uri'        => 'baseURI',
+			'child-src'       => 'childSrc',
+			'connect-src'     => 'connectSrc',
+			'default-src'     => 'defaultSrc',
+			'font-src'        => 'fontSrc',
+			'form-action'     => 'formAction',
+			'frame-ancestors' => 'frameAncestors',
+			'img-src'         => 'imageSrc',
+			'media-src'       => 'mediaSrc',
+			'object-src'      => 'objectSrc',
+			'plugin-types'    => 'pluginTypes',
+			'script-src'      => 'scriptSrc',
+			'style-src'       => 'styleSrc',
+			'manifest-src'    => 'manifestSrc',
+			'sandbox'         => 'sandbox',
+			'report-uri'      => 'reportURI',
 		];
+
+		// inject default base & default URIs if needed
+		if (empty($this->baseURI))
+		{
+			$this->baseURI = 'self';
+		}
+		if (empty($this->defaultSrc))
+		{
+			$this->defaultSrc = 'self';
+		}
 
 		foreach ($directives as $name => $property)
 		{
 			// base_uri
-			if ( ! empty($this->{$property}))
+			if (! empty($this->{$property}))
 			{
-				$this->addToHeader($name, $this->{$property}, $response);
+				$this->addToHeader($name, $this->{$property});
 			}
 		}
 
+		// Compile our own header strings here since if we just
+		// append it to the response, it will be joined with
+		// commas, not semi-colons as we need.
+		if (! empty($this->tempHeaders))
+		{
+			$header = '';
+			foreach ($this->tempHeaders as $name => $value)
+			{
+				$header .= " {$name} {$value};";
+			}
+			// add token only if needed
+			if ($this->upgradeInsecureRequests)
+			{
+				$header .= ' upgrade-insecure-requests;';
+			}
+
+			$response->appendHeader('Content-Security-Policy', $header);
+		}
+
+		if (! empty($this->reportOnlyHeaders))
+		{
+			$header = '';
+			foreach ($this->reportOnlyHeaders as $name => $value)
+			{
+				$header .= " {$name} {$value};";
+			}
+			$response->appendHeader('Content-Security-Policy-Report-Only', $header);
+		}
+
+		$this->tempHeaders       = [];
+		$this->reportOnlyHeaders = [];
 	}
 
 	//--------------------------------------------------------------------
@@ -696,15 +796,12 @@ class ContentSecurityPolicy
 	 *
 	 * @param string            $name
 	 * @param array|string|null $values
-	 * @param ResponseInterface $response
 	 */
-	protected function addToHeader(string $name, $values = null, ResponseInterface &$response)
+	protected function addToHeader(string $name, $values = null)
 	{
-		if ( empty($values))
+		if (empty($values))
 		{
-			// It's possible that directives like 'sandbox' will not
-			// have any values passed in, so add them to the main policy.
-			$response->appendHeader('Content-Security-Policy', $name);
+			$this->tempHeaders[$name] = null;
 			return;
 		}
 
@@ -726,9 +823,7 @@ class ContentSecurityPolicy
 
 			if ($reportOnly === true)
 			{
-				$reportSources[] = in_array($value, $this->validSources)
-					? "'{$value}'"
-					: $value;
+				$reportSources[] = in_array($value, $this->validSources) ? "'{$value}'" : $value;
 			}
 			else
 			{
@@ -738,24 +833,21 @@ class ContentSecurityPolicy
 				}
 				else
 				{
-					$sources[] = in_array($value, $this->validSources)
-							? "'{$value}'"
-							: $value;
+					$sources[] = in_array($value, $this->validSources) ? "'{$value}'" : $value;
 				}
 			}
 		}
 
-		if (count($sources))
+		if (! empty($sources))
 		{
-			$response->appendHeader('Content-Security-Policy', $name.' '.implode(' ', $sources));
+			$this->tempHeaders[$name] = implode(' ', $sources);
 		}
 
-		if (count($reportSources))
+		if (! empty($reportSources))
 		{
-			$response->appendHeader('Content-Security-Policy-Report-Only', $name.' '.implode(' ', $reportSources));
+			$this->reportOnlyHeaders[$name] = implode(' ', $reportSources);
 		}
 	}
 
 	//--------------------------------------------------------------------
-
 }

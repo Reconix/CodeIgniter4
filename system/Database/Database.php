@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +27,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	CodeIgniter
- * @author	CodeIgniter Dev Team
- * @copyright	Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	http://codeigniter.com
- * @since	Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
 
@@ -45,6 +45,7 @@
  */
 class Database
 {
+
 	/**
 	 * Maintains an array of the instances of all connections
 	 * that have been created. Helps to keep track of all open
@@ -63,9 +64,8 @@ class Database
 	 * @param array  $params
 	 * @param string $alias
 	 *
-	 * @return mixed
+	 * @return   mixed
 	 * @internal param bool $useBuilder
-	 *
 	 */
 	public function load(array $params = [], string $alias)
 	{
@@ -74,10 +74,10 @@ class Database
 		{
 			throw new \InvalidArgumentException('You have not selected a database type to connect to.');
 		}
-		
+
 		$className = strpos($params['DBDriver'], '\\') === false
-			? '\CodeIgniter\Database\\'.$params['DBDriver'].'\\Connection'
-			: $params['DBDriver'].'\\Connection';
+			? '\CodeIgniter\Database\\' . $params['DBDriver'] . '\\Connection'
+			: $params['DBDriver'] . '\\Connection';
 
 		$class = new $className($params);
 
@@ -92,15 +92,13 @@ class Database
 	/**
 	 * Creates a new Forge instance for the current database type.
 	 *
-	 * @param ConnectionInterface $db
+	 * @param ConnectionInterface|BaseConnection $db
 	 *
 	 * @return mixed
 	 */
 	public function loadForge(ConnectionInterface $db)
 	{
-		$className = strpos($db->DBDriver, '\\') === false
-			? '\CodeIgniter\Database\\'.$db->DBDriver.'\\Forge'
-			: $db->DBDriver.'\\Connection';
+		$className = strpos($db->DBDriver, '\\') === false ? '\CodeIgniter\Database\\' . $db->DBDriver . '\\Forge' : $db->DBDriver . '\\Forge';
 
 		// Make sure a connection exists
 		if (! $db->connID)
@@ -118,15 +116,13 @@ class Database
 	/**
 	 * Loads the Database Utilities class.
 	 *
-	 * @param ConnectionInterface $db
+	 * @param ConnectionInterface|BaseConnection $db
 	 *
 	 * @return mixed
 	 */
 	public function loadUtils(ConnectionInterface $db)
 	{
-		$className = strpos($db->DBDriver, '\\') === false
-			? '\CodeIgniter\Database\\'.$db->DBDriver.'\\Utils'
-			: $db->DBDriver.'\\Utils';
+		$className = strpos($db->DBDriver, '\\') === false ? '\CodeIgniter\Database\\' . $db->DBDriver . '\\Utils' : $db->DBDriver . '\\Utils';
 
 		// Make sure a connection exists
 		if (! $db->connID)
@@ -140,6 +136,4 @@ class Database
 	}
 
 	//--------------------------------------------------------------------
-
-
 }

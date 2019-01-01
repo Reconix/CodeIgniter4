@@ -1,4 +1,7 @@
-<?php namespace CodeIgniter\HTTP;
+<?php
+namespace CodeIgniter\HTTP;
+
+use CodeIgniter\HTTP\Exceptions\HTTPException;
 
 /**
  * CodeIgniter
@@ -7,7 +10,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,17 +30,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	CodeIgniter
- * @author	CodeIgniter Dev Team
- * @copyright	Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	http://codeigniter.com
- * @since	Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
-
 class Message
 {
+
 	/**
 	 * List of all HTTP request headers.
 	 *
@@ -56,29 +59,34 @@ class Message
 
 	/**
 	 * Protocol version
-	 * @var type 
+	 *
+	 * @var string
 	 */
 	protected $protocolVersion;
 
 	/**
 	 * List of valid protocol versions
-	 * @var array 
+	 *
+	 * @var array
 	 */
-	protected $validProtocolVersions = ['1.0', '1.1', '2'];
+	protected $validProtocolVersions = [
+		'1.0',
+		'1.1',
+		'2',
+	];
 
 	/**
 	 * Message body
-	 * 
-	 * @var type 
+	 *
+	 * @var string
 	 */
 	protected $body;
 
 	//--------------------------------------------------------------------
-	
 	//--------------------------------------------------------------------
 	// Body
 	//--------------------------------------------------------------------
-	
+
 	/**
 	 * Returns the Message's body.
 	 *
@@ -96,9 +104,9 @@ class Message
 	 *
 	 * @param $data
 	 *
-	 * @return Message
+	 * @return Message|Response
 	 */
-	public function setBody(&$data): self
+	public function setBody($data)
 	{
 		$this->body = $data;
 
@@ -106,17 +114,32 @@ class Message
 	}
 
 	//--------------------------------------------------------------------
-	
+
+	/**
+	 * Appends data to the body of the current message.
+	 *
+	 * @param $data
+	 *
+	 * @return Message|Response
+	 */
+	public function appendBody($data)
+	{
+		$this->body .= (string) $data;
+
+		return $this;
+	}
+
+	//--------------------------------------------------------------------
 	//--------------------------------------------------------------------
 	// Headers
 	//--------------------------------------------------------------------
-	
+
 	/**
 	 * Populates the $headers array with any headers the getServer knows about.
 	 */
 	public function populateHeaders()
 	{
-		$contentType = isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : getenv('CONTENT_TYPE');
+		$contentType = $_SERVER['CONTENT_TYPE'] ?? getenv('CONTENT_TYPE');
 		if (! empty($contentType))
 		{
 			$this->setHeader('Content-Type', $contentType);
@@ -131,14 +154,7 @@ class Message
 				$header = str_replace('_', ' ', strtolower($header));
 				$header = str_replace(' ', '-', ucwords($header));
 
-				if (array_key_exists($key, $_SERVER))
-				{
-					$this->setHeader($header, $_SERVER[$key]);
-				}
-				else
-				{
-					$this->setHeader($header, '');
-				}
+				$this->setHeader($header, $_SERVER[$key]);
 
 				// Add us to the header map so we can find them case-insensitively
 				$this->headerMap[strtolower($header)] = $header;
@@ -147,7 +163,6 @@ class Message
 	}
 
 	//--------------------------------------------------------------------
-
 
 	/**
 	 * Returns an array containing all headers.
@@ -173,8 +188,7 @@ class Message
 	 * Returns a single header object. If multiple headers with the same
 	 * name exist, then will return an array of header objects.
 	 *
-	 * @param      $name
-	 * @param null $filter
+	 * @param string $name
 	 *
 	 * @return array|\CodeIgniter\HTTP\Header
 	 */
@@ -182,9 +196,9 @@ class Message
 	{
 		$orig_name = $this->getHeaderName($name);
 
-		if ( ! isset($this->headers[$orig_name]))
+		if (! isset($this->headers[$orig_name]))
 		{
-			return NULL;
+			return null;
 		}
 
 		return $this->headers[$orig_name];
@@ -197,7 +211,7 @@ class Message
 	 *
 	 * @param $name
 	 *
-	 * @return bool
+	 * @return boolean
 	 */
 	public function hasHeader($name): bool
 	{
@@ -207,7 +221,6 @@ class Message
 	}
 
 	//--------------------------------------------------------------------
-
 
 	/**
 	 * Retrieves a comma-separated string of the values for a single header.
@@ -233,28 +246,20 @@ class Message
 			return '';
 		}
 
-		// If there are more than 1 headers with this name,
-		// then return the value of the first.
-		if (is_array($this->headers[$orig_name]))
-		{
-			return $this->headers[$orig_name][0]->getValueLine();
-		}
-
 		return $this->headers[$orig_name]->getValueLine();
 	}
 
 	//--------------------------------------------------------------------
 
-
 	/**
 	 * Sets a header and it's value.
 	 *
-	 * @param string $name
-	 * @param        $value
+	 * @param string            $name
+	 * @param array|null|string $value
 	 *
-	 * @return Message
+	 * @return Message|Response
 	 */
-	public function setHeader(string $name, $value): self
+	public function setHeader(string $name, $value)
 	{
 		if (! isset($this->headers[$name]))
 		{
@@ -270,7 +275,10 @@ class Message
 			$this->headers[$name] = [$this->headers[$name]];
 		}
 
-		$this->headers[$name][] = new Header($name, $value);
+		if (isset($this->headers[$name]))
+		{
+			$this->headers[$name] = new Header($name, $value);
+		}
 
 		return $this;
 	}
@@ -284,7 +292,7 @@ class Message
 	 *
 	 * @return Message
 	 */
-	public function removeHeader(string $name): self
+	public function removeHeader(string $name)
 	{
 		$orig_name = $this->getHeaderName($name);
 
@@ -301,11 +309,11 @@ class Message
 	 * multiple values (i.e. are an array or implement ArrayAccess)
 	 *
 	 * @param string $name
-	 * @param        $value
+	 * @param string $value
 	 *
 	 * @return string
 	 */
-	public function appendHeader(string $name, $value): self
+	public function appendHeader(string $name, $value)
 	{
 		$orig_name = $this->getHeaderName($name);
 
@@ -321,11 +329,11 @@ class Message
 	 * multiple values (i.e. are an array or implement ArrayAccess)
 	 *
 	 * @param string $name
-	 * @param        $value
+	 * @param string $value
 	 *
 	 * @return string
 	 */
-	public function prependHeader(string $name, $value): self
+	public function prependHeader(string $name, $value)
 	{
 		$orig_name = $this->getHeaderName($name);
 
@@ -343,7 +351,7 @@ class Message
 	 */
 	public function getProtocolVersion(): string
 	{
-		return $this->protocolVersion;
+		return $this->protocolVersion ?? '1.1';
 	}
 
 	//--------------------------------------------------------------------
@@ -355,30 +363,30 @@ class Message
 	 *
 	 * @return Message
 	 */
-	public function setProtocolVersion(string $version): self
+	public function setProtocolVersion(string $version)
 	{
 		if (! is_numeric($version))
 		{
 			$version = substr($version, strpos($version, '/') + 1);
 		}
 
-	    if (! in_array($version, $this->validProtocolVersions))
-	    {
-		    throw new \InvalidArgumentException('Invalid HTTP Protocol Version. Must be one of: '. implode(', ', $this->validProtocolVersions));
-	    }
+		if (! in_array($version, $this->validProtocolVersions))
+		{
+			throw HTTPException::forInvalidHTTPProtocol(implode(', ', $this->validProtocolVersions));
+		}
 
 		$this->protocolVersion = $version;
 
 		return $this;
 	}
-	
+
 	//--------------------------------------------------------------------
 
 	/**
 	 * Takes a header name in any case, and returns the
 	 * normal-case version of the header.
 	 *
-	 * @param $name
+	 * @param string $name
 	 *
 	 * @return string
 	 */
@@ -386,9 +394,8 @@ class Message
 	{
 		$lower_name = strtolower($name);
 
-		return isset($this->headerMap[$lower_name]) ? $this->headerMap[$lower_name] : $name;
+		return $this->headerMap[$lower_name] ?? $name;
 	}
 
 	//--------------------------------------------------------------------
-
 }

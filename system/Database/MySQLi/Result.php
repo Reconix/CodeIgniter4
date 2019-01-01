@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +27,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	CodeIgniter
- * @author	CodeIgniter Dev Team
- * @copyright	Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	http://codeigniter.com
- * @since	Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
 
@@ -44,10 +44,11 @@ use CodeIgniter\Database\ResultInterface;
  */
 class Result extends BaseResult implements ResultInterface
 {
+
 	/**
 	 * Gets the number of fields in the result set.
 	 *
-	 * @return int
+	 * @return integer
 	 */
 	public function getFieldCount(): int
 	{
@@ -85,14 +86,14 @@ class Result extends BaseResult implements ResultInterface
 		$retval    = [];
 		$fieldData = $this->resultID->fetch_fields();
 
-		for ($i = 0, $c = count($fieldData); $i < $c; $i++)
+		foreach ($fieldData as $i => $data)
 		{
 			$retval[$i]              = new \stdClass();
-			$retval[$i]->name        = $fieldData[$i]->name;
-			$retval[$i]->type        = $fieldData[$i]->type;
-			$retval[$i]->max_length  = $fieldData[$i]->max_length;
-			$retval[$i]->primary_key = (int)($fieldData[$i]->flags & 2);
-			$retval[$i]->default     = $fieldData[$i]->def;
+			$retval[$i]->name        = $data->name;
+			$retval[$i]->type        = $data->type;
+			$retval[$i]->max_length  = $data->max_length;
+			$retval[$i]->primary_key = (int) ($data->flags & 2);
+			$retval[$i]->default     = $data->def;
 		}
 
 		return $retval;
@@ -102,8 +103,6 @@ class Result extends BaseResult implements ResultInterface
 
 	/**
 	 * Frees the current result.
-	 *
-	 * @return mixed
 	 */
 	public function freeResult()
 	{
@@ -121,7 +120,7 @@ class Result extends BaseResult implements ResultInterface
 	 * internally before fetching results to make sure the result set
 	 * starts at zero.
 	 *
-	 * @param int $n
+	 * @param integer $n
 	 *
 	 * @return mixed
 	 */

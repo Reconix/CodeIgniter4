@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,47 +27,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	CodeIgniter
- * @author	CodeIgniter Dev Team
- * @copyright	Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	http://codeigniter.com
- * @since	Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
 
 use CodeIgniter\Database\BaseBuilder;
-use CodeIgniter\DatabaseException;
+use CodeIgniter\Database\Exceptions\DatabaseException;
 
 /**
  * Builder for Postgre
  */
 class Builder extends BaseBuilder
 {
+
 	/**
 	 * ORDER BY random keyword
 	 *
 	 * @var array
 	 */
-	protected $randomKeyword = ['RANDOM()', 'RANDOM()'];
+	protected $randomKeyword = [
+		'RANDOM()',
+		'RANDOM()',
+	];
 
 	//--------------------------------------------------------------------
 
 	/**
 	 * ORDER BY
 	 *
-	 * @param    string $orderby
-	 * @param    string $direction ASC, DESC or RANDOM
-	 * @param    bool   $escape
+	 * @param string  $orderby
+	 * @param string  $direction ASC, DESC or RANDOM
+	 * @param boolean $escape
 	 *
-	 * @return    BaseBuilder
+	 * @return BaseBuilder
 	 */
 	public function orderBy($orderby, $direction = '', $escape = null)
 	{
 		$direction = strtoupper(trim($direction));
 		if ($direction === 'RANDOM')
 		{
-			if ( ! is_float($orderby) && ctype_digit((string) $orderby))
+			if (! is_float($orderby) && ctype_digit((string) $orderby))
 			{
 				$orderby = (float) ($orderby > 1 ? "0.{$orderby}" : $orderby);
 			}
@@ -77,9 +81,9 @@ class Builder extends BaseBuilder
 				$this->db->simpleQuery("SET SEED {$orderby}");
 			}
 
-			$orderby = $this->randomKeyword[0];
+			$orderby   = $this->randomKeyword[0];
 			$direction = '';
-			$escape = false;
+			$escape    = false;
 		}
 
 		return parent::orderBy($orderby, $direction, $escape);
@@ -90,10 +94,10 @@ class Builder extends BaseBuilder
 	/**
 	 * Increments a numeric column by the specified value.
 	 *
-	 * @param string $column
-	 * @param int    $value
+	 * @param string  $column
+	 * @param integer $value
 	 *
-	 * @return bool
+	 * @return boolean
 	 */
 	public function increment(string $column, int $value = 1)
 	{
@@ -109,10 +113,10 @@ class Builder extends BaseBuilder
 	/**
 	 * Decrements a numeric column by the specified value.
 	 *
-	 * @param string $column
-	 * @param int    $value
+	 * @param string  $column
+	 * @param integer $value
 	 *
-	 * @return bool
+	 * @return boolean
 	 */
 	public function decrement(string $column, int $value = 1)
 	{
@@ -133,13 +137,12 @@ class Builder extends BaseBuilder
 	 * we simply do a DELETE and an INSERT on the first key/value
 	 * combo, assuming that it's either the primary key or a unique key.
 	 *
-	 * @param      array     an associative array of insert values
-	 * @param bool $returnSQL
+	 * @param array   $set       An associative array of insert values
+	 * @param boolean $returnSQL
 	 *
-	 * @return bool TRUE on success, FALSE on failure
-	 * @throws DatabaseException
+	 * @return   boolean TRUE on success, FALSE on failure
+	 * @throws   DatabaseException
 	 * @internal param true $bool returns the generated SQL, false executes the query.
-	 *
 	 */
 	public function replace($set = null, $returnSQL = false)
 	{
@@ -148,7 +151,7 @@ class Builder extends BaseBuilder
 			$this->set($set);
 		}
 
-		if (count($this->QBSet) === 0)
+		if (! $this->QBSet)
 		{
 			if (CI_DEBUG)
 			{
@@ -159,16 +162,16 @@ class Builder extends BaseBuilder
 
 		$table = $this->QBFrom[0];
 
-		$set = $this->binds;
-		$keys = array_keys($set);
+		$set    = $this->binds;
+		$keys   = array_keys($set);
 		$values = array_values($set);
 
 		$builder = $this->db->table($table);
-		$exists = $builder->where("$keys[0] = $values[0]", null, false)->get()->getFirstRow();
+		$exists  = $builder->where("$keys[0] = $values[0]", null, false)->get()->getFirstRow();
 
 		if (empty($exists))
 		{
-			$result = $builder->insert($set, false);
+			$result = $builder->insert($set);
 		}
 		else
 		{
@@ -189,17 +192,16 @@ class Builder extends BaseBuilder
 	 *
 	 * Compiles a delete string and runs the query
 	 *
-	 * @param string $where
-	 * @param null   $limit
-	 * @param bool   $reset_data
-	 * @param bool   $returnSQL
+	 * @param string  $where
+	 * @param null    $limit
+	 * @param boolean $reset_data
+	 * @param boolean $returnSQL
 	 *
-	 * @return mixed
-	 * @throws DatabaseException
+	 * @return   mixed
+	 * @throws   DatabaseException
 	 * @internal param the $mixed where clause
 	 * @internal param the $mixed limit clause
 	 * @internal param $bool
-	 *
 	 */
 	public function delete($where = '', $limit = null, $reset_data = true, $returnSQL = false)
 	{
@@ -218,13 +220,13 @@ class Builder extends BaseBuilder
 	 *
 	 * Generates a platform-specific LIMIT clause.
 	 *
-	 * @param    string $sql SQL Query
+	 * @param string $sql SQL Query
 	 *
-	 * @return    string
+	 * @return string
 	 */
 	protected function _limit($sql)
 	{
-		return $sql.' LIMIT '.$this->QBLimit.($this->QBOffset ? " OFFSET {$this->QBOffset}" : '');
+		return $sql . ' LIMIT ' . $this->QBLimit . ($this->QBOffset ? " OFFSET {$this->QBOffset}" : '');
 	}
 
 	//--------------------------------------------------------------------
@@ -234,14 +236,13 @@ class Builder extends BaseBuilder
 	 *
 	 * Generates a platform-specific update string from the supplied data
 	 *
-	 * @param $table
-	 * @param $values
+	 * @param string $table
+	 * @param array  $values
 	 *
-	 * @return string
-	 * @throws DatabaseException
+	 * @return   string
+	 * @throws   DatabaseException
 	 * @internal param the $string table name
 	 * @internal param the $array update data
-	 *
 	 */
 	protected function _update($table, $values)
 	{
@@ -261,11 +262,11 @@ class Builder extends BaseBuilder
 	 *
 	 * Generates a platform-specific batch update string from the supplied data
 	 *
-	 * @param    string $table  Table name
-	 * @param    array  $values Update data
-	 * @param    string $index  WHERE key
+	 * @param string $table  Table name
+	 * @param array  $values Update data
+	 * @param string $index  WHERE key
 	 *
-	 * @return    string
+	 * @return string
 	 */
 	protected function _updateBatch($table, $values, $index)
 	{
@@ -287,13 +288,13 @@ class Builder extends BaseBuilder
 		foreach ($final as $k => $v)
 		{
 			$cases .= "{$k} = (CASE {$index}\n"
-				.implode("\n", $v)
-				."\nELSE {$k} END), ";
+					. implode("\n", $v)
+					. "\nELSE {$k} END), ";
 		}
 
-		$this->where("{$index} IN(".implode(',', $ids).')', null, false);
+		$this->where("{$index} IN(" . implode(',', $ids) . ')', null, false);
 
-		return "UPDATE {$table} SET ".substr($cases, 0, -2).$this->compileWhereHaving('QBWhere');
+		return "UPDATE {$table} SET " . substr($cases, 0, -2) . $this->compileWhereHaving('QBWhere');
 	}
 
 	//--------------------------------------------------------------------
@@ -303,9 +304,9 @@ class Builder extends BaseBuilder
 	 *
 	 * Generates a platform-specific delete string from the supplied data
 	 *
-	 * @param    string    the table name
+	 * @param string $table The table name
 	 *
-	 * @return    string
+	 * @return string
 	 */
 	protected function _delete($table)
 	{
@@ -323,13 +324,38 @@ class Builder extends BaseBuilder
 	 * If the database does not support the truncate() command,
 	 * then this method maps to 'DELETE FROM table'
 	 *
-	 * @param    string    the table name
+	 * @param string $table The table name
 	 *
-	 * @return    string
+	 * @return string
 	 */
 	protected function _truncate($table)
 	{
-		return 'TRUNCATE '.$table.' RESTART IDENTITY';
+		return 'TRUNCATE ' . $table . ' RESTART IDENTITY';
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Platform independent LIKE statement builder.
+	 *
+	 * In PostgreSQL, the ILIKE operator will perform case insensitive
+	 * searches according to the current locale.
+	 *
+	 * @see https://www.postgresql.org/docs/9.2/static/functions-matching.html
+	 *
+	 * @param string|null $prefix
+	 * @param string      $column
+	 * @param string|null $not
+	 * @param string      $bind
+	 * @param boolean     $insensitiveSearch
+	 *
+	 * @return string     $like_statement
+	 */
+	public function _like_statement(string $prefix = null, string $column, string $not = null, string $bind, bool $insensitiveSearch = false): string
+	{
+		$op = $insensitiveSearch === true ? 'ILIKE' : 'LIKE';
+
+		return "{$prefix} {$column} {$not} {$op} :{$bind}:";
 	}
 
 	//--------------------------------------------------------------------

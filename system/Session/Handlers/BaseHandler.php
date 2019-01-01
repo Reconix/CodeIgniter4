@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,29 +27,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	CodeIgniter
- * @author	CodeIgniter Dev Team
- * @copyright	Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	http://codeigniter.com
- * @since	Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
 
 use CodeIgniter\Config\BaseConfig;
-use CodeIgniter\Log\LoggerAwareTrait;
+use Psr\Log\LoggerAwareTrait;
 
 /**
  * Base class for session handling
  */
 abstract class BaseHandler implements \SessionHandlerInterface
 {
+
 	use LoggerAwareTrait;
 
 	/**
 	 * The Data fingerprint.
 	 *
-	 * @var bool
+	 * @var boolean
 	 */
 	protected $fingerprint;
 
@@ -62,64 +63,83 @@ abstract class BaseHandler implements \SessionHandlerInterface
 
 	/**
 	 * Cookie prefix
-	 * 
-	 * @var type 
+	 *
+	 * @var type
 	 */
 	protected $cookiePrefix = '';
 
 	/**
 	 * Cookie domain
-	 * 
-	 * @var type 
+	 *
+	 * @var type
 	 */
 	protected $cookieDomain = '';
 
 	/**
 	 * Cookie path
-	 * @var type 
+	 *
+	 * @var type
 	 */
 	protected $cookiePath = '/';
 
 	/**
 	 * Cookie secure?
-	 * 
-	 * @var type 
+	 *
+	 * @var type
 	 */
 	protected $cookieSecure = false;
 
 	/**
 	 * Cookie name to use
-	 * @var type 
+	 *
+	 * @var type
 	 */
 	protected $cookieName;
 
 	/**
 	 * Match IP addresses for cookies?
-	 * 
-	 * @var type 
+	 *
+	 * @var type
 	 */
 	protected $matchIP = false;
 
 	/**
 	 * Current session ID
-	 * @var type 
+	 *
+	 * @var type
 	 */
 	protected $sessionID;
+
+	/**
+	 * The 'save path' for the session
+	 * varies between
+	 *
+	 * @var mixed
+	 */
+	protected $savePath;
+
+	/**
+	 * @var string
+	 */
+	protected $ipAddress;
 
 	//--------------------------------------------------------------------
 
 	/**
 	 * Constructor
+	 *
 	 * @param BaseConfig $config
 	 */
-	public function __construct(BaseConfig $config)
+	public function __construct($config, string $ipAddress)
 	{
 		$this->cookiePrefix = $config->cookiePrefix;
-		$this->cookieDomain = $config->cookoieDomain;
+		$this->cookieDomain = $config->cookieDomain;
 		$this->cookiePath   = $config->cookiePath;
 		$this->cookieSecure = $config->cookieSecure;
 		$this->cookieName   = $config->sessionCookieName;
 		$this->matchIP      = $config->sessionMatchIP;
+		$this->savePath     = $config->sessionSavePath;
+		$this->ipAddress    = $ipAddress;
 	}
 
 	//--------------------------------------------------------------------
@@ -128,19 +148,13 @@ abstract class BaseHandler implements \SessionHandlerInterface
 	 * Internal method to force removal of a cookie by the client
 	 * when session_destroy() is called.
 	 *
-	 * @return bool
+	 * @return boolean
 	 */
 	protected function destroyCookie(): bool
 	{
-	    return setcookie(
-		    $this->cookieName,
-		    null,
-		    1,
-		    $this->cookiePath,
-		    $this->cookieDomain,
-		    $this->cookieSecure,
-		    true
-	    );
+		return setcookie(
+				$this->cookieName, null, 1, $this->cookiePath, $this->cookieDomain, $this->cookieSecure, true
+		);
 	}
 
 	//--------------------------------------------------------------------
@@ -150,11 +164,11 @@ abstract class BaseHandler implements \SessionHandlerInterface
 	 * (databases other than PostgreSQL and MySQL) to act as if they
 	 * do acquire a lock.
 	 *
-	 * @param string $session_id
+	 * @param string $sessionID
 	 *
-	 * @return bool
+	 * @return boolean
 	 */
-	protected function lockSession(string $session_id): bool
+	protected function lockSession(string $sessionID): bool
 	{
 		$this->lock = true;
 		return true;
@@ -165,7 +179,7 @@ abstract class BaseHandler implements \SessionHandlerInterface
 	/**
 	 * Releases the lock, if any.
 	 *
-	 * @return bool
+	 * @return boolean
 	 */
 	protected function releaseLock(): bool
 	{
@@ -175,5 +189,25 @@ abstract class BaseHandler implements \SessionHandlerInterface
 	}
 
 	//--------------------------------------------------------------------
+
+	/**
+	 * Fail
+	 *
+	 * Drivers other than the 'files' one don't (need to) use the
+	 * session.save_path INI setting, but that leads to confusing
+	 * error messages emitted by PHP when open() or write() fail,
+	 * as the message contains session.save_path ...
+	 * To work around the problem, the drivers will call this method
+	 * so that the INI is set just in time for the error message to
+	 * be properly generated.
+	 *
+	 * @return mixed
+	 */
+	protected function fail()
+	{
+		ini_set('session.save_path', $this->savePath);
+
+		return false;
+	}
 
 }

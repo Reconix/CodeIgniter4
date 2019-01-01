@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,16 +27,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	CodeIgniter
- * @author	CodeIgniter Dev Team
- * @copyright	Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	http://codeigniter.com
- * @since	Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
 
 use Psr\Log\LoggerInterface;
+use CodeIgniter\Log\Exceptions\LogException;
 
 /**
  * The CodeIgntier Logger
@@ -73,10 +74,10 @@ class Logger implements LoggerInterface
 		'alert'     => 2,
 		'critical'  => 3,
 		'error'     => 4,
-		'debug'     => 5,
-		'warning'   => 6,
-		'notice'    => 7,
-		'info'      => 8,
+		'warning'   => 5,
+		'notice'    => 6,
+		'info'      => 7,
+		'debug'     => 8,
 	];
 
 	/**
@@ -91,7 +92,7 @@ class Logger implements LoggerInterface
 	/**
 	 * File permissions
 	 *
-	 * @var int
+	 * @var integer
 	 */
 	protected $filePermissions = 0644;
 
@@ -136,7 +137,7 @@ class Logger implements LoggerInterface
 	/**
 	 * Should we cache our logged items?
 	 *
-	 * @var bool
+	 * @var boolean
 	 */
 	protected $cacheLogs = false;
 
@@ -144,23 +145,23 @@ class Logger implements LoggerInterface
 
 	/**
 	 * Constructor.
-	 * 
-	 * @param type $config
-	 * @param bool $debug
+	 *
+	 * @param  \Config\Logger $config
+	 * @param  boolean        $debug
 	 * @throws \RuntimeException
 	 */
 	public function __construct($config, bool $debug = CI_DEBUG)
 	{
-		$this->loggableLevels = is_array($config->threshold) ? $config->threshold : range(1, (int)$config->threshold);
+		$this->loggableLevels = is_array($config->threshold) ? $config->threshold : range(1, (int) $config->threshold);
 
 		// Now convert loggable levels to strings.
 		// We only use numbers to make the threshold setting convenient for users.
-		if (count($this->loggableLevels))
+		if ($this->loggableLevels)
 		{
 			$temp = [];
 			foreach ($this->loggableLevels as $level)
 			{
-				$temp[] = array_search((int)$level, $this->logLevels);
+				$temp[] = array_search((int) $level, $this->logLevels);
 			}
 
 			$this->loggableLevels = $temp;
@@ -171,14 +172,14 @@ class Logger implements LoggerInterface
 
 		if (! is_array($config->handlers) || empty($config->handlers))
 		{
-			throw new \RuntimeException('LoggerConfig must provide at least one Handler.');
+			throw LogException::forNoHandlers('LoggerConfig');
 		}
 
 		// Save the handler configuration for later.
 		// Instances will be created on demand.
 		$this->handlerConfig = $config->handlers;
 
-		$this->cacheLogs = (bool)$debug;
+		$this->cacheLogs = $debug;
 		if ($this->cacheLogs)
 		{
 			$this->logCache = [];
@@ -193,11 +194,11 @@ class Logger implements LoggerInterface
 	 * @param string $message
 	 * @param array  $context
 	 *
-	 * @return null
+	 * @return boolean
 	 */
 	public function emergency($message, array $context = [])
 	{
-		$this->log('emergency', $message, $context);
+		return $this->log('emergency', $message, $context);
 	}
 
 	//--------------------------------------------------------------------
@@ -211,11 +212,11 @@ class Logger implements LoggerInterface
 	 * @param string $message
 	 * @param array  $context
 	 *
-	 * @return null
+	 * @return boolean
 	 */
 	public function alert($message, array $context = [])
 	{
-		$this->log('alert', $message, $context);
+		return $this->log('alert', $message, $context);
 	}
 
 	//--------------------------------------------------------------------
@@ -228,11 +229,11 @@ class Logger implements LoggerInterface
 	 * @param string $message
 	 * @param array  $context
 	 *
-	 * @return null
+	 * @return boolean
 	 */
 	public function critical($message, array $context = [])
 	{
-		$this->log('critical', $message, $context);
+		return $this->log('critical', $message, $context);
 	}
 
 	//--------------------------------------------------------------------
@@ -244,11 +245,11 @@ class Logger implements LoggerInterface
 	 * @param string $message
 	 * @param array  $context
 	 *
-	 * @return null
+	 * @return boolean
 	 */
 	public function error($message, array $context = [])
 	{
-		$this->log('error', $message, $context);
+		return $this->log('error', $message, $context);
 	}
 
 	//--------------------------------------------------------------------
@@ -262,11 +263,11 @@ class Logger implements LoggerInterface
 	 * @param string $message
 	 * @param array  $context
 	 *
-	 * @return null
+	 * @return boolean
 	 */
 	public function warning($message, array $context = [])
 	{
-		$this->log('warning', $message, $context);
+		return $this->log('warning', $message, $context);
 	}
 
 	//--------------------------------------------------------------------
@@ -277,11 +278,11 @@ class Logger implements LoggerInterface
 	 * @param string $message
 	 * @param array  $context
 	 *
-	 * @return null
+	 * @return boolean
 	 */
 	public function notice($message, array $context = [])
 	{
-		$this->log('notice', $message, $context);
+		return $this->log('notice', $message, $context);
 	}
 
 	//--------------------------------------------------------------------
@@ -294,11 +295,11 @@ class Logger implements LoggerInterface
 	 * @param string $message
 	 * @param array  $context
 	 *
-	 * @return null
+	 * @return boolean
 	 */
 	public function info($message, array $context = [])
 	{
-		$this->log('info', $message, $context);
+		return $this->log('info', $message, $context);
 	}
 
 	//--------------------------------------------------------------------
@@ -309,11 +310,11 @@ class Logger implements LoggerInterface
 	 * @param string $message
 	 * @param array  $context
 	 *
-	 * @return null
+	 * @return boolean
 	 */
 	public function debug($message, array $context = [])
 	{
-		$this->log('debug', $message, $context);
+		return $this->log('debug', $message, $context);
 	}
 
 	//--------------------------------------------------------------------
@@ -325,23 +326,23 @@ class Logger implements LoggerInterface
 	 * @param string $message
 	 * @param array  $context
 	 *
-	 * @return bool
+	 * @return boolean
 	 */
 	public function log($level, $message, array $context = []): bool
 	{
 		if (is_numeric($level))
 		{
-			$level = array_search((int)$level, $this->logLevels);
+			$level = array_search((int) $level, $this->logLevels);
 		}
 
 		// Is the level a valid level?
 		if (! array_key_exists($level, $this->logLevels))
 		{
-			throw new \InvalidArgumentException($level.' is an invalid log level.');
+			throw LogException::forInvalidLogLevel($level);
 		}
 
 		// Does the app want to log this right now?
-		if ( ! in_array($level, $this->loggableLevels))
+		if (! in_array($level, $this->loggableLevels))
 		{
 			return false;
 		}
@@ -358,16 +359,21 @@ class Logger implements LoggerInterface
 		{
 			$this->logCache[] = [
 				'level' => $level,
-			    'msg'   => $message
+				'msg'   => $message,
 			];
 		}
 
 		foreach ($this->handlerConfig as $className => $config)
 		{
+			if (! array_key_exists($className, $this->handlers))
+			{
+				$this->handlers[$className] = new $className($config);
+			}
+
 			/**
 			 * @var \CodeIgniter\Log\Handlers\HandlerInterface
 			 */
-			$handler = new $className($config);
+			$handler = $this->handlers[$className];
 
 			if (! $handler->canHandle($level))
 			{
@@ -399,14 +405,17 @@ class Logger implements LoggerInterface
 	 * {file}
 	 * {line}
 	 *
-	 * @param       $message
-	 * @param array $context
+	 * @param $message
+	 * @param array   $context
 	 *
 	 * @return string
 	 */
 	protected function interpolate($message, array $context = [])
 	{
-		if (! is_string($message)) return $message;
+		if (! is_string($message))
+		{
+			return $message;
+		}
 
 		// build a replacement array with braces around the context keys
 		$replace = [];
@@ -415,18 +424,18 @@ class Logger implements LoggerInterface
 		{
 			// Verify that the 'exception' key is actually an exception
 			// or error, both of which implement the 'Throwable' interface.
-			if ($key == 'exception' && $val instanceof \Throwable)
+			if ($key === 'exception' && $val instanceof \Throwable)
 			{
-				$val = $val->getMessage().' '.$this->cleanFileNames($val->getFile()).':'. $val->getLine();
+				$val = $val->getMessage() . ' ' . $this->cleanFileNames($val->getFile()) . ':' . $val->getLine();
 			}
 
 			// todo - sanitize input before writing to file?
-			$replace['{'.$key.'}'] = $val;
+			$replace['{' . $key . '}'] = $val;
 		}
 
 		// Add special placeholders
-		$replace['{post_vars}'] = '$_POST: '.print_r($_POST, true);
-		$replace['{get_vars}']  = '$_GET: '.print_r($_GET, true);
+		$replace['{post_vars}'] = '$_POST: ' . print_r($_POST, true);
+		$replace['{get_vars}']  = '$_GET: ' . print_r($_GET, true);
 		$replace['{env}']       = ENVIRONMENT;
 
 		// Allow us to log the file/line that we are logging from
@@ -443,11 +452,11 @@ class Logger implements LoggerInterface
 		{
 			preg_match('/env:[^}]+/', $message, $matches);
 
-			if (count($matches))
+			if ($matches)
 			{
 				foreach ($matches as $str)
 				{
-					$key = str_replace('env:', '', $str);
+					$key                 = str_replace('env:', '', $str);
 					$replace["{{$str}}"] = $_ENV[$key] ?? 'n/a';
 				}
 			}
@@ -455,7 +464,7 @@ class Logger implements LoggerInterface
 
 		if (isset($_SESSION))
 		{
-			$replace['{session_vars}'] = '$_SESSION: '.print_r($_SESSION, true);
+			$replace['{session_vars}'] = '$_SESSION: ' . print_r($_SESSION, true);
 		}
 
 		// interpolate replacement values into the message and return
@@ -475,8 +484,8 @@ class Logger implements LoggerInterface
 		// Determine the file and line by finding the first
 		// backtrace that is not part of our logging system.
 		$trace = debug_backtrace();
-		$file = null;
-		$line = null;
+		$file  = null;
+		$line  = null;
 
 		foreach ($trace as $row)
 		{
@@ -492,15 +501,14 @@ class Logger implements LoggerInterface
 
 		return [
 			$file,
-		    $line
+			$line,
 		];
 	}
 
 	//--------------------------------------------------------------------
 
-
 	/**
-	 * Cleans the paths of filenames by replacing APPPATH, BASEPATH, FCPATH
+	 * Cleans the paths of filenames by replacing APPPATH, SYSTEMPATH, FCPATH
 	 * with the actual var. i.e.
 	 *
 	 *  /var/www/site/application/Controllers/Home.php
@@ -514,13 +522,11 @@ class Logger implements LoggerInterface
 	protected function cleanFileNames($file)
 	{
 		$file = str_replace(APPPATH, 'APPPATH/', $file);
-		$file = str_replace(BASEPATH, 'BASEPATH/', $file);
+		$file = str_replace(SYSTEMPATH, 'SYSTEMPATH/', $file);
 		$file = str_replace(FCPATH, 'FCPATH/', $file);
 
-	    return $file;
+		return $file;
 	}
 
 	//--------------------------------------------------------------------
-
-
 }

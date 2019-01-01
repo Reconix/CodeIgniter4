@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,19 +27,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	CodeIgniter
- * @author	CodeIgniter Dev Team
- * @copyright	Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	http://codeigniter.com
- * @since	Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
 
 /**
  * Iterator for debugging.
  */
-
 class Iterator
 {
 
@@ -65,7 +64,7 @@ class Iterator
 	 * Tests are simply closures that the user can define any sequence of
 	 * things to happen during the test.
 	 *
-	 * @param          $name
+	 * @param $name
 	 * @param \Closure $closure
 	 *
 	 * @return $this
@@ -86,12 +85,12 @@ class Iterator
 	 * time to execute the desired number of iterations, and the approximate
 	 * memory usage used during those iterations.
 	 *
-	 * @param int $iterations
-	 * @param bool $output
+	 * @param integer $iterations
+	 * @param boolean $output
 	 *
 	 * @return string
 	 */
-	public function run($iterations = 1000, $output=true)
+	public function run($iterations = 1000, $output = true)
 	{
 		foreach ($this->tests as $name => $test)
 		{
@@ -101,9 +100,9 @@ class Iterator
 			$start     = microtime(true);
 			$start_mem = $max_memory = memory_get_usage(true);
 
-			for ($i = 0; $i < $iterations; $i++)
+			for ($i = 0; $i < $iterations; $i ++)
 			{
-				$result = call_user_func($test);
+				$result = $test();
 
 				$max_memory = max($max_memory, memory_get_usage(true));
 
@@ -127,7 +126,7 @@ class Iterator
 
 	/**
 	 * Get results.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function getReport()
@@ -137,8 +136,10 @@ class Iterator
 			return 'No results to display.';
 		}
 
+		helper('number');
+
 		// Template
-		$tpl = "<table>
+		$tpl = '<table>
 			<thead>
 				<tr>
 					<td>Test</td>
@@ -149,24 +150,26 @@ class Iterator
 			<tbody>
 				{rows}
 			</tbody>
-		</table>";
+		</table>';
 
-		$rows = "";
+		$rows = '';
 
 		foreach ($this->results as $name => $result)
 		{
+			$memory = number_to_size($result['memory'], 4);
+
 			$rows .= "<tr>
 				<td>{$name}</td>
-				<td>".number_format($result['time'], 4)."</td>
-				<td>{$result['memory']}</td>
+				<td>" . number_format($result['time'], 4) . "</td>
+				<td>{$memory}</td>
 			</tr>";
 		}
 
 		$tpl = str_replace('{rows}', $rows, $tpl);
 
-		return $tpl ."<br/>";
+		return $tpl . '<br/>';
 	}
 
 	//--------------------------------------------------------------------
-	
+
 }

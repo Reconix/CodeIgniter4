@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,37 +27,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @package	CodeIgniter
- * @author	CodeIgniter Dev Team
- * @copyright	Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	http://codeigniter.com
- * @since	Version 3.0.0
+ * @package    CodeIgniter
+ * @author     CodeIgniter Dev Team
+ * @copyright  2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license    https://opensource.org/licenses/MIT	MIT License
+ * @link       https://codeigniter.com
+ * @since      Version 3.0.0
  * @filesource
  */
 
 use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\Security\Exceptions\SecurityException;
 
 /**
  * HTTP security handler.
  */
 class Security
 {
-	/**
-	 * CSRF Enabled
-	 *
-	 * Whether CSRF Protection is enabled.
-	 *
-	 * @var bool
-	 */
-	protected $CSRFEnabled = true;
 
 	/**
 	 * CSRF Hash
 	 *
 	 * Random hash for Cross Site Request Forgery protection cookie
 	 *
-	 * @var    string
+	 * @var string
 	 */
 	protected $CSRFHash;
 
@@ -67,7 +60,7 @@ class Security
 	 * Expiration time for Cross Site Request Forgery protection cookie.
 	 * Defaults to two hours (in seconds).
 	 *
-	 * @var    int
+	 * @var integer
 	 */
 	protected $CSRFExpire = 7200;
 
@@ -76,7 +69,7 @@ class Security
 	 *
 	 * Token name for Cross Site Request Forgery protection cookie.
 	 *
-	 * @var    string
+	 * @var string
 	 */
 	protected $CSRFTokenName = 'CSRFToken';
 
@@ -85,7 +78,7 @@ class Security
 	 *
 	 * Cookie name for Cross Site Request Forgery protection cookie.
 	 *
-	 * @var    string
+	 * @var string
 	 */
 	protected $CSRFCookieName = 'CSRFToken';
 
@@ -95,18 +88,9 @@ class Security
 	 * If true, the CSRF Token will be regenerated on every request.
 	 * If false, will stay the same for the life of the cookie.
 	 *
-	 * @var bool
+	 * @var boolean
 	 */
 	protected $CSRFRegenerate = true;
-
-	/**
-	 * CSRF Exclude URIs
-	 *
-	 * An array of URIs to skip when checking CSRF.
-	 *
-	 * @var array
-	 */
-	protected $CSRFExcludeURIs = [];
 
 	/**
 	 * Typically will be a forward slash
@@ -125,33 +109,48 @@ class Security
 	/**
 	 * Cookie will only be set if a secure HTTPS connection exists.
 	 *
-	 * @var bool
+	 * @var boolean
 	 */
 	protected $cookieSecure = false;
 
 	/**
 	 * List of sanitize filename strings
 	 *
-	 * @var	array
+	 * @var array
 	 */
-	public $filenameBadChars = array(
-		'../', '<!--', '-->', '<', '>',
-		"'", '"', '&', '$', '#',
-		'{', '}', '[', ']', '=',
-		';', '?', '%20', '%22',
-		'%3c',      // <
-		'%253c',    // <
-		'%3e',      // >
-		'%0e',      // >
-		'%28',      // (
-		'%29',      // )
-		'%2528',    // (
-		'%26',      // &
-		'%24',      // $
-		'%3f',      // ?
-		'%3b',      // ;
-		'%3d'       // =
-	);
+	public $filenameBadChars = [
+		'../',
+		'<!--',
+		'-->',
+		'<',
+		'>',
+		"'",
+		'"',
+		'&',
+		'$',
+		'#',
+		'{',
+		'}',
+		'[',
+		']',
+		'=',
+		';',
+		'?',
+		'%20',
+		'%22',
+		'%3c', // <
+		'%253c', // <
+		'%3e', // >
+		'%0e', // >
+		'%28', // (
+		'%29', // )
+		'%2528', // (
+		'%26', // &
+		'%24', // $
+		'%3f', // ?
+		'%3b', // ;
+		'%3d',       // =
+	];
 
 	//--------------------------------------------------------------------
 
@@ -166,16 +165,14 @@ class Security
 	public function __construct($config)
 	{
 		// Store our CSRF-related settings
-		$this->CSRFEnabled     = $config->CSRFProtection;
-		$this->CSRFExpire      = $config->CSRFExpire;
-		$this->CSRFTokenName   = $config->CSRFTokenName;
-		$this->CSRFCookieName  = $config->CSRFCookieName;
-		$this->CSRFRegenerate  = $config->CSRFRegenerate;
-		$this->CSRFExcludeURIs = $config->CSRFExcludeURIs;
+		$this->CSRFExpire     = $config->CSRFExpire;
+		$this->CSRFTokenName  = $config->CSRFTokenName;
+		$this->CSRFCookieName = $config->CSRFCookieName;
+		$this->CSRFRegenerate = $config->CSRFRegenerate;
 
 		if (isset($config->cookiePrefix))
 		{
-			$this->CSRFCookieName = $config->cookiePrefix.$this->CSRFCookieName;
+			$this->CSRFCookieName = $config->cookiePrefix . $this->CSRFCookieName;
 		}
 
 		// Store cookie-related settings
@@ -192,9 +189,9 @@ class Security
 
 	/**
 	 * CSRF Verify
-	 *  
-	 * @param RequestInterface $request
-	 * @return $this
+	 *
+	 * @param  RequestInterface $request
+	 * @return $this|false
 	 * @throws \LogicException
 	 */
 	public function CSRFVerify(RequestInterface $request)
@@ -205,29 +202,11 @@ class Security
 			return $this->CSRFSetCookie($request);
 		}
 
-		// Check if URI has been whitelisted from CSRF checks
-		if (is_array($this->CSRFExcludeURIs) && count($this->CSRFExcludeURIs))
-		{
-			$uri = (string)$request->uri;
-
-			foreach ($this->CSRFExcludeURIs as $excluded)
-			{
-				// @TODO modify to support UTF8 once our method of determining this
-				// has been determined.
-//				if (preg_match('#^'.$excluded.'$#i'.(UTF8_ENABLED ? 'u' : ''), $uri))
-				if (preg_match('#^'.$excluded.'$#i', $uri))
-				{
-					return $this;
-				}
-			}
-		}
-
 		// Do the tokens exist in both the _POST and _COOKIE arrays?
-		if ( ! isset($_POST[$this->CSRFTokenName], $_COOKIE[$this->CSRFCookieName])
-		     || $_POST[$this->CSRFTokenName] !== $_COOKIE[$this->CSRFCookieName]
+		if (! isset($_POST[$this->CSRFTokenName], $_COOKIE[$this->CSRFCookieName]) || $_POST[$this->CSRFTokenName] !== $_COOKIE[$this->CSRFCookieName]
 		) // Do the tokens match?
 		{
-			throw new \LogicException('The action you requested is not allowed', 403);
+			throw SecurityException::forDisallowedAction();
 		}
 
 		// We kill this since we're done and we don't want to pollute the _POST array
@@ -238,7 +217,6 @@ class Security
 		{
 			// Nothing should last forever
 			unset($_COOKIE[$this->CSRFCookieName]);
-			$this->_csrf_hash = null;
 		}
 
 		$this->CSRFSetHash();
@@ -255,13 +233,15 @@ class Security
 	 * CSRF Set Cookie
 	 *
 	 * @codeCoverageIgnore
-	 * @param RequestInterface $request
-	 * @return    $this
+	 *
+	 * @param RequestInterface|\CodeIgniter\HTTP\IncomingRequest $request
+	 *
+	 * @return Security|false
 	 */
 	public function CSRFSetCookie(RequestInterface $request)
 	{
 		$expire        = time() + $this->CSRFExpire;
-		$secure_cookie = (bool)$this->cookieSecure;
+		$secure_cookie = (bool) $this->cookieSecure;
 
 		if ($secure_cookie && ! $request->isSecure())
 		{
@@ -269,13 +249,7 @@ class Security
 		}
 
 		setcookie(
-			$this->CSRFCookieName,
-			$this->CSRFHash,
-			$expire,
-			$this->cookiePath,
-			$this->cookieDomain,
-			$secure_cookie,
-			true                // Enforce HTTP only cookie for security
+				$this->CSRFCookieName, $this->CSRFHash, $expire, $this->cookiePath, $this->cookieDomain, $secure_cookie, true                // Enforce HTTP only cookie for security
 		);
 
 		log_message('info', 'CSRF cookie sent');
@@ -322,8 +296,7 @@ class Security
 			// We don't necessarily want to regenerate it with
 			// each page load since a page could contain embedded
 			// sub-pages causing this feature to fail
-			if (isset($_COOKIE[$this->CSRFCookieName]) && is_string($_COOKIE[$this->CSRFCookieName])
-			    && preg_match('#^[0-9a-f]{32}$#iS', $_COOKIE[$this->CSRFCookieName]) === 1
+			if (isset($_COOKIE[$this->CSRFCookieName]) && is_string($_COOKIE[$this->CSRFCookieName]) && preg_match('#^[0-9a-f]{32}$#iS', $_COOKIE[$this->CSRFCookieName]) === 1
 			)
 			{
 				return $this->CSRFHash = $_COOKIE[$this->CSRFCookieName];
@@ -349,8 +322,8 @@ class Security
 	 * e.g. file/in/some/approved/folder.txt, you can set the second optional
 	 * parameter, $relative_path to TRUE.
 	 *
-	 * @param    string $str           Input file name
-	 * @param    bool   $relative_path Whether to preserve paths
+	 * @param string  $str           Input file name
+	 * @param boolean $relative_path Whether to preserve paths
 	 *
 	 * @return string
 	 */
@@ -358,7 +331,7 @@ class Security
 	{
 		$bad = $this->filenameBadChars;
 
-		if ( ! $relative_path)
+		if (! $relative_path)
 		{
 			$bad[] = './';
 			$bad[] = '/';
@@ -377,5 +350,4 @@ class Security
 	}
 
 	//--------------------------------------------------------------------
-
 }
