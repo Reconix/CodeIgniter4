@@ -1,4 +1,4 @@
-<?php namespace CodeIgniter\View;
+<?php
 
 /**
  * CodeIgniter
@@ -32,9 +32,11 @@
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
+
+namespace CodeIgniter\View;
 
 use CodeIgniter\Log\Logger;
 use CodeIgniter\View\Exceptions\ViewException;
@@ -118,7 +120,7 @@ class Parser extends View
 	 *
 	 * @return string
 	 */
-	public function render(string $view, array $options = null, $saveData = null): string
+	public function render(string $view, array $options = null, bool $saveData = null): string
 	{
 		$start = microtime(true);
 		if (is_null($saveData))
@@ -126,12 +128,13 @@ class Parser extends View
 			$saveData = $this->config->saveData;
 		}
 
-		$view = str_replace('.php', '', $view);
+		$fileExt = pathinfo($view, PATHINFO_EXTENSION);
+		$view    = empty($fileExt) ? $view . '.php' : $view; // allow Views as .html, .tpl, etc (from CI3)
 
 		// Was it cached?
 		if (isset($options['cache']))
 		{
-			$cacheName = $options['cache_name'] ?: $view;
+			$cacheName = $options['cache_name'] ?? str_replace('.php', '', $view);
 
 			if ($output = cache($cacheName))
 			{
@@ -140,7 +143,6 @@ class Parser extends View
 			}
 		}
 
-		$view = $view . '.php';
 		$file = $this->viewPath . $view;
 
 		if (! is_file($file))
@@ -185,7 +187,7 @@ class Parser extends View
 	 *
 	 * @return string
 	 */
-	public function renderString(string $template, array $options = null, $saveData = null): string
+	public function renderString(string $template, array $options = null, bool $saveData = null): string
 	{
 		$start = microtime(true);
 		if (is_null($saveData))
@@ -530,7 +532,7 @@ class Parser extends View
 		extract($this->data);
 		try
 		{
-			$result = eval('?>' . $template . '<?php ');
+			eval('?>' . $template . '<?php ');
 		}
 		catch (\ParseError $e)
 		{
@@ -599,7 +601,7 @@ class Parser extends View
 	 *
 	 * @return string
 	 */
-	protected function prepareReplacement(array $matches, string $replace, bool $escape = true)
+	protected function prepareReplacement(array $matches, string $replace, bool $escape = true): string
 	{
 		$orig = array_shift($matches);
 
@@ -627,7 +629,7 @@ class Parser extends View
 	 *
 	 * @param string $key
 	 *
-	 * @return false|html
+	 * @return false|string
 	 */
 	public function shouldAddEscaping(string $key)
 	{

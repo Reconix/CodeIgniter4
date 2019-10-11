@@ -32,7 +32,7 @@
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
 
@@ -91,8 +91,18 @@ if (! defined('TESTPATH'))
  * GRAB OUR CONSTANTS & COMMON
  * ---------------------------------------------------------------
  */
-require_once APPPATH . 'Config/Constants.php';
+if (! defined('APP_NAMESPACE'))
+{
+	require_once APPPATH . 'Config/Constants.php';
+}
 
+// Let's see if an app/Common.php file exists
+if (file_exists(APPPATH . 'Common.php'))
+{
+	require_once APPPATH . 'Common.php';
+}
+
+// Require system/Common.php
 require_once SYSTEMPATH . 'Common.php';
 
 /*
@@ -105,8 +115,13 @@ require_once SYSTEMPATH . 'Common.php';
  * that the config files can use the path constants.
  */
 
+if (! class_exists(Config\Autoload::class, false))
+{
+	require_once APPPATH . 'Config/Autoload.php';
+	require_once APPPATH . 'Config/Modules.php';
+}
+
 require_once SYSTEMPATH . 'Autoloader/Autoloader.php';
-require_once APPPATH . 'Config/Autoload.php';
 require_once SYSTEMPATH . 'Config/BaseService.php';
 require_once APPPATH . 'Config/Services.php';
 
@@ -117,7 +132,7 @@ if (! class_exists('CodeIgniter\Services', false))
 }
 
 $loader = CodeIgniter\Services::autoloader();
-$loader->initialize(new Config\Autoload());
+$loader->initialize(new Config\Autoload(), new Config\Modules());
 $loader->register();    // Register the loader with the SPL autoloader stack.
 
 // Now load Composer's if it's available

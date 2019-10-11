@@ -39,7 +39,7 @@ class ValidationTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 
@@ -348,6 +348,25 @@ class ValidationTest extends \CIUnitTestCase
 	}
 
 	//--------------------------------------------------------------------
+
+	public function testSetRulesRemovesErrorsArray()
+	{
+		$rules = [
+			'foo' => [
+				'label'  => 'Foo Bar',
+				'rules'  => 'min_length[10]',
+				'errors' => [
+					'min_length' => 'The {field} field is very short.',
+				],
+			],
+		];
+
+		$this->validation->setRules($rules, []);
+
+		$this->validation->run(['foo' => 'abc']);
+
+		$this->assertEquals('The Foo Bar field is very short.', $this->validation->getError('foo'));
+	}
 
 	public function testInvalidRule()
 	{

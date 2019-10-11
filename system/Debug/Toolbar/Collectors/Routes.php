@@ -1,5 +1,4 @@
-<?php namespace CodeIgniter\Debug\Toolbar\Collectors;
-
+<?php
 /**
  * CodeIgniter
  *
@@ -35,6 +34,8 @@
  * @since      Version 4.0.0
  * @filesource
  */
+
+namespace CodeIgniter\Debug\Toolbar\Collectors;
 
 use CodeIgniter\Config\Services;
 
@@ -74,11 +75,12 @@ class Routes extends BaseCollector
 	 * Returns the data of this collector to be formatted in the toolbar
 	 *
 	 * @return array
+	 * @throws \ReflectionException
 	 */
 	public function display(): array
 	{
 		$rawRoutes = Services::routes(true);
-		$router    = Services::router(null, true);
+		$router    = Services::router(null, null, true);
 
 		/*
 		 * Matched Route
@@ -86,7 +88,25 @@ class Routes extends BaseCollector
 		$route = $router->getMatchedRoute();
 
 		// Get our parameters
-		$method    = is_callable($router->controllerName()) ? new \ReflectionFunction($router->controllerName()) : new \ReflectionMethod($router->controllerName(), $router->methodName());
+		// Closure routes
+		if (is_callable($router->controllerName()))
+		{
+			$method = new \ReflectionFunction($router->controllerName());
+		}
+		else
+		{
+			try
+			{
+				$method = new \ReflectionMethod($router->controllerName(), $router->methodName());
+			}
+			catch (\ReflectionException $e)
+			{
+				// If we're here, the method doesn't exist
+				// and is likely calculated in _remap.
+				$method = new \ReflectionMethod($router->controllerName(), '_remap');
+			}
+		}
+
 		$rawParams = $method->getParameters();
 
 		$params = [];
@@ -95,7 +115,7 @@ class Routes extends BaseCollector
 			$params[] = [
 				'name'  => $param->getName(),
 				'value' => $router->params()[$key] ??
-				'&lt;empty&gt;&nbsp| default: ' . var_export($param->getDefaultValue(), true),
+					'&lt;empty&gt;&nbsp| default: ' . var_export($param->isDefaultValueAvailable() ? $param->getDefaultValue() : null, true),
 			];
 		}
 
@@ -137,7 +157,7 @@ class Routes extends BaseCollector
 	 *
 	 * @return integer
 	 */
-	public function getBadgeValue()
+	public function getBadgeValue(): int
 	{
 		$rawRoutes = Services::routes(true);
 

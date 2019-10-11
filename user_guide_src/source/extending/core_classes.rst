@@ -42,13 +42,14 @@ Replacing Core Classes
 ======================
 
 To use one of your own system classes instead of a default one, ensure that the :doc:`Autoloader <../concepts/autoloader>`
-can find your class, that  your new class extends the appropriate interface, and modify the appropriate
+can find your class, that your new class extends the appropriate interface, and modify the appropriate
 :doc:`Service <../concepts/services>` to load your class in place of the core class.
 
 For example, if you have a new ``App\Libraries\RouteCollection`` class that you would like to use in place of
 the core system class, you would create your class like this::
 
-    namespace App\Libraries;
+    <?php namespace App\Libraries;
+
     use CodeIgniter\Router\RouteCollectionInterface;
 
     class RouteCollection implements RouteCollectionInterface
@@ -72,14 +73,15 @@ Extending Core Classes
 ======================
 
 If all you need to is add some functionality to an existing library - perhaps add a method or two - then it's overkill
-to recreate the entire library. In this case it's better to simply extend the class. Extending the class is nearly
-identical to replacing a class with a one exception:
+to recreate the entire library. In this case, it's better to simply extend the class. Extending the class is nearly
+identical to replacing a class with one exception:
 
 * The class declaration must extend the parent class.
 
 For example, to extend the native RouteCollection class, you would declare your class with::
 
-    namespace App\Libraries;
+    <?php namespace App\Libraries;
+
     use CodeIgniter\Router\RouteCollection;
 
     class RouteCollection extends RouteCollection
@@ -89,7 +91,8 @@ For example, to extend the native RouteCollection class, you would declare your 
 
 If you need to use a constructor in your class make sure you extend the parent constructor::
 
-    namespace App\Libraries;
+    <?php namespace App\Libraries;
+
     use CodeIgniter\Router\RouteCollection;
 
     class RouteCollection extends RouteCollection
@@ -102,14 +105,3 @@ If you need to use a constructor in your class make sure you extend the parent c
 
 **Tip:**  Any functions in your class that are named identically to the methods in the parent class will be used
 instead of the native ones (this is known as “method overriding”). This allows you to substantially alter the CodeIgniter core.
-
-If you are extending the Controller core class, then be sure to extend your new class in your application controller’s
-constructors::
-
-    namespace App\Controllers;
-    use App\BaseController;
-
-    class Home extends BaseController {
-
-    }
-

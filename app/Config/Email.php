@@ -1,7 +1,9 @@
-<?php namespace Config;
+<?php
+namespace Config;
 
 class Email
 {
+
 	/**
 	 * @var string
 	 */
@@ -158,4 +160,5 @@ class Email
 	 * @var boolean
 	 */
 	public $DSN = false;
+
 }

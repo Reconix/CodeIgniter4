@@ -26,6 +26,8 @@ you are currently connected to. Example::
 	{
 		echo $table;
 	}
+	
+.. note:: Some drivers have additional system tables that are excluded from this return.
 
 Determine If a Table Exists
 ===========================
@@ -134,4 +136,40 @@ List the Indexes in a Table
 
 **$db->getIndexData()**
 
-please write this, someone...
+Returns an array of objects containing index information.
+
+Usage example::
+
+	$keys = $db->getIndexData('table_name');
+
+	foreach ($keys as $key)
+	{
+		echo $key->name;
+		echo $key->type;
+		echo $key->fields;  // array of field names
+	}
+
+The key types may be unique to the database you are using.
+For instance, MySQL will return one of primary, fulltext, spatial, index or unique
+for each key associated with a table.
+
+**$db->getForeignKeyData()**
+
+Returns an array of objects containing foreign key information.
+
+Usage example::
+
+	$keys = $db->getForeignKeyData('table_name');
+
+	foreach ($keys as $key)
+	{
+		echo $key->constraint_name;
+		echo $key->table_name;
+		echo $key->column_name;
+		echo $key->foreign_table_name;
+		echo $key->foreign_column_name;
+	}
+
+The object fields may be unique to the database you are using. For instance, SQLite3 does
+not return data on column names, but has the additional *sequence* field for compound
+foreign key definitions.

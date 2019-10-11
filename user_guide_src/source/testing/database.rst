@@ -10,9 +10,13 @@ The Test Class
 ==============
 
 In order to take advantage of the built-in database tools that CodeIgniter provides for testing, your
-tests must extend ``\CIDatabaseTestCase``::
+tests must extend ``CIDatabaseTestCase``::
 
-    class MyTests extends \CIDatabaseTestCase
+    <?php namespace App\Database;
+
+    use CodeIgniter\Test\CIDatabaseTestCase;
+
+    class MyTests extends CIDatabaseTestCase
     {
         . . .
     }
@@ -21,7 +25,11 @@ Because special functionality executed during the ``setUp()`` and ``tearDown()``
 that you call the parent's methods if you need to use those methods, otherwise you will lose much
 of the functionality described here::
 
-    class MyTests extends \CIDatabaseTestCase
+    <?php namespace App\Database;
+
+    use CodeIgniter\Test\CIDatabaseTestCase;
+
+    class MyTests extends CIDatabaseTestCase
     {
         public function setUp()
         {
@@ -63,7 +71,11 @@ it is in a known state for every test. You can use migrations and seeds to setup
 by adding a couple of class properties to your test.
 ::
 
-    class MyTests extends \CIDatabaseTestCase
+    <?php namespace App\Database;
+
+    use CodeIgniter\Test\CIDatabaseTestCase;
+
+    class MyTests extends\CIDatabaseTestCase
     {
         protected $refresh  = true;
         protected $seed     = 'TestSeeder';
@@ -82,10 +94,15 @@ test data prior to every test running.
 
 **$basePath**
 
-By default, CodeIgniter will look in **tests/_support/database/migrations** and **tests/_support_database/seeds**
-to locate the migrations and seeds that it should run during testing. You can change this directory by specifying
-the path in the ``$basePath`` property. This should not include the **migrations** or **seeds** directories, but
-the path to the single directory that holds both of those sub-directories.
+By default, CodeIgniter will look in **tests/_support/Database/Seeds** to locate the seeds that it should run during testing.
+You can change this directores by specifying the ``$basePath`` property. This should not include the **seeds** directory,
+but the path to the single directory that holds the sub-directory.
+
+**$namespace**
+
+By default, CodeIgniter will look in **tests/_support/DatabaseTestMigrations/Database/Migrations** to locate the migrations
+that it should run during testing. You can change this location by specifying a new namespace in the ``$namespace`` properties.
+This should not include the **Database/Migrations** path, just the base namespace.
 
 Helper Methods
 ==============
@@ -145,7 +162,7 @@ Asserts that a number of matching rows are found in the database that match ``$c
 ::
 
     $criteria = [
-        'deleted' => 1
+        'active' => 1
     ];
     $this->seeNumRecords(2, 'users', $criteria);
 

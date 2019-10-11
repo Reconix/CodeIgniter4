@@ -1,4 +1,4 @@
-<?php namespace CodeIgniter\Config;
+<?php
 
 /**
  * CodeIgniter
@@ -32,9 +32,11 @@
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
+
+namespace CodeIgniter\Config;
 
 /**
  * Class Config
@@ -98,6 +100,16 @@ class Config
 	//--------------------------------------------------------------------
 
 	/**
+	 * Resets the instances array
+	 */
+	public static function reset()
+	{
+		static::$instances = [];
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
 	 * Find configuration class and create instance
 	 *
 	 * @param string $name Classname
@@ -116,7 +128,22 @@ class Config
 
 		if (empty($file))
 		{
-			return null;
+			// No file found - check if the class was namespaced
+			if (strpos($name, '\\') !== false)
+			{
+				// Class was namespaced and locateFile couldn't find it
+				return null;
+			}
+
+			// Check all namespaces
+			$files = $locator->search('Config/' . $name);
+			if (empty($files))
+			{
+				return null;
+			}
+
+			// Get the first match (prioritizes user and framework)
+			$file = reset($files);
 		}
 
 		$name = $locator->getClassname($file);

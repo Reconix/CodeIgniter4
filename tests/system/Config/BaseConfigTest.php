@@ -10,7 +10,7 @@ class BaseConfigTest extends CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 
@@ -185,10 +185,42 @@ class BaseConfigTest extends CIUnitTestCase
 		$config              = new \RegistrarConfig();
 		$config::$registrars = ['\Tests\Support\Config\BadRegistrar'];
 		$this->setPrivateProperty($config, 'didDiscovery', true);
+
+		$this->expectException(\RuntimeException::class);
 		$method = $this->getPrivateMethodInvoker($config, 'registerProperties');
 		$method();
 
 		$this->assertEquals('bar', $config->foo);
+	}
+
+	public function testNotEnabled()
+	{
+		$modulesConfig          = config('Modules');
+		$modulesConfig->enabled = false;
+
+		$config              = new \RegistrarConfig();
+		$config::$registrars = [];
+		$expected            = $config::$registrars;
+
+		$method = $this->getPrivateMethodInvoker($config, 'registerProperties');
+		$method();
+
+		$this->assertEquals($expected, $config::$registrars);
+	}
+
+	public function testDidDiscovery()
+	{
+		$modulesConfig          = config('Modules');
+		$modulesConfig->enabled = true;
+
+		$config              = new \RegistrarConfig();
+		$config::$registrars = [];
+		$this->setPrivateProperty($config, 'didDiscovery', false);
+
+		$method = $this->getPrivateMethodInvoker($config, 'registerProperties');
+		$method();
+
+		$this->assertEquals(true, $this->getPrivateProperty($config, 'didDiscovery'));
 	}
 
 }

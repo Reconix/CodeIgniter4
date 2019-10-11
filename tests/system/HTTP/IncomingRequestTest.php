@@ -15,7 +15,7 @@ class IncomingRequestTest extends \CIUnitTestCase
 	 */
 	protected $request;
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 
@@ -379,6 +379,14 @@ class IncomingRequestTest extends \CIUnitTestCase
 
 		$gotit = $this->request->getFile('userfile');
 		$this->assertEquals(124, $gotit->getSize());
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testSpoofing()
+	{
+		$this->request->setMethod('WINK');
+		$this->assertEquals('wink', $this->request->getMethod());
 	}
 
 }

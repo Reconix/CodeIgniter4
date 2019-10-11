@@ -3,9 +3,12 @@
 namespace CodeIgniter\Validation;
 
 use Config\Database;
+use CodeIgniter\Test\CIDatabaseTestCase;
 
-class RulesTest extends \CIUnitTestCase
+class RulesTest extends CIDatabaseTestCase
 {
+	protected $refresh = true;
+
 	/**
 	 * @var Validation
 	 */
@@ -30,11 +33,11 @@ class RulesTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 
-		$this->validation = new Validation((object) $this->config, \Config\Services::renderer());
+		$this->validation = new Validation((object)$this->config, \Config\Services::renderer());
 		$this->validation->reset();
 
 		$_FILES = [];
@@ -51,7 +54,7 @@ class RulesTest extends \CIUnitTestCase
 		];
 
 		$this->validation->setRules([
-			'foo' => 'required',
+			'foo' => 'required|alpha',
 		]);
 
 		$this->assertFalse($this->validation->run($data));
@@ -77,6 +80,7 @@ class RulesTest extends \CIUnitTestCase
 	public function testRequiredFalseString()
 	{
 		$data = [
+			'foo' => null,
 			'bar' => 123,
 		];
 
@@ -160,7 +164,7 @@ class RulesTest extends \CIUnitTestCase
 			],
 			[
 				['foo' => 'required'],
-				[],
+				['foo' => null],
 				false,
 			],
 			[
@@ -381,17 +385,168 @@ class RulesTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
+	public function testEqualsNull()
+	{
+		$data = [
+			'foo' => null,
+		];
+
+		$this->validation->setRules([
+			'foo' => 'equals[]',
+		]);
+
+		$this->assertFalse($this->validation->run($data));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testEqualsEmptyIsEmpty()
+	{
+		$data = [
+			'foo' => '',
+		];
+
+		$this->validation->setRules([
+			'foo' => 'equals[]',
+		]);
+
+		$this->assertTrue($this->validation->run($data));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testEqualsReturnsFalseOnFailure()
+	{
+		$data = [
+			'foo' => 'bar',
+		];
+
+		$this->validation->setRules([
+			'foo' => 'equals[notbar]',
+		]);
+
+		$this->assertFalse($this->validation->run($data));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testEqualsReturnsTrueOnSuccess()
+	{
+		$data = [
+			'foo' => 'bar',
+		];
+
+		$this->validation->setRules([
+			'foo' => 'equals[bar]',
+		]);
+
+		$this->assertTrue($this->validation->run($data));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testEqualsReturnsFalseOnCaseMismatch()
+	{
+		$data = [
+			'foo' => 'bar',
+		];
+
+		$this->validation->setRules([
+			'foo' => 'equals[Bar]',
+		]);
+
+		$this->assertFalse($this->validation->run($data));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testNotEqualsNull()
+	{
+		$data = [
+			'foo' => null,
+		];
+
+		$this->validation->setRules([
+			'foo' => 'not_equals[]',
+		]);
+
+		$this->assertTrue($this->validation->run($data));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testNotEqualsEmptyIsEmpty()
+	{
+		$data = [
+			'foo' => '',
+		];
+
+		$this->validation->setRules([
+			'foo' => 'not_equals[]',
+		]);
+
+		$this->assertFalse($this->validation->run($data));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testNotEqualsReturnsFalseOnFailure()
+	{
+		$data = [
+			'foo' => 'bar',
+		];
+
+		$this->validation->setRules([
+			'foo' => 'not_equals[bar]',
+		]);
+
+		$this->assertFalse($this->validation->run($data));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testNotEqualsReturnsTrueOnSuccess()
+	{
+		$data = [
+			'foo' => 'bar',
+		];
+
+		$this->validation->setRules([
+			'foo' => 'not_equals[notbar]',
+		]);
+
+		$this->assertTrue($this->validation->run($data));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testNotEqualsReturnsTrueOnCaseMismatch()
+	{
+		$data = [
+			'foo' => 'bar',
+		];
+
+		$this->validation->setRules([
+			'foo' => 'not_equals[Bar]',
+		]);
+
+		$this->assertTrue($this->validation->run($data));
+	}
+
+	//--------------------------------------------------------------------
+
 	/**
 	 * @group DatabaseLive
 	 */
 	public function testIsUniqueFalse()
 	{
 		$db = Database::connect();
-		$db->table('user')->insert([
-			'name'    => 'Derek Travis',
-			'email'   => 'derek@world.com',
-			'country' => 'Elbonia',
-		]);
+		$db->table('user')
+		   ->insert([
+			   'name'    => 'Derek Travis',
+			   'email'   => 'derek@world.com',
+			   'country' => 'Elbonia',
+		   ]);
 
 		$data = [
 			'email' => 'derek@world.com',
@@ -431,15 +586,15 @@ class RulesTest extends \CIUnitTestCase
 	{
 		$db   = Database::connect();
 		$user = $db->table('user')
-				->insert([
-					'name'    => 'Developer A',
-					'email'   => 'deva@example.com',
-					'country' => 'Elbonia',
-				]);
+				   ->insert([
+					   'name'    => 'Developer A',
+					   'email'   => 'deva@example.com',
+					   'country' => 'Elbonia',
+				   ]);
 		$row  = $db->table('user')
-				->limit(1)
-				->get()
-				->getRow();
+				   ->limit(1)
+				   ->get()
+				   ->getRow();
 
 		$data = [
 			'email' => 'derek@world.co.uk',
@@ -462,21 +617,6 @@ class RulesTest extends \CIUnitTestCase
 
 		$this->validation->setRules([
 			'foo' => 'min_length[3]',
-		]);
-
-		$this->assertFalse($this->validation->run($data));
-	}
-
-	//--------------------------------------------------------------------
-
-	public function testMinLengthReturnsFalseWithNonNumericVal()
-	{
-		$data = [
-			'foo' => 'bar',
-		];
-
-		$this->validation->setRules([
-			'foo' => 'min_length[bar]',
 		]);
 
 		$this->assertFalse($this->validation->run($data));

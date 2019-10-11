@@ -27,7 +27,7 @@ class FormatRulesTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 		$this->validation = new Validation((object) $this->config, \Config\Services::renderer());
@@ -319,6 +319,47 @@ class FormatRulesTest extends \CIUnitTestCase
 				null,
 				null,
 				false,
+			],
+		];
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * @dataProvider stringProvider
+	 *
+	 * @param $str
+	 * @param $expected
+	 */
+	public function testString($str, $expected)
+	{
+		$data = [
+			'foo' => $str,
+		];
+
+		$this->validation->setRules([
+			'foo' => 'string',
+		]);
+
+		$this->assertEquals($expected, $this->validation->run($data));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function stringProvider()
+	{
+		return [
+			[
+				'123',
+				true,
+			],
+			[
+				123,
+				false,
+			],
+			[
+				'hello',
+				true,
 			],
 		];
 	}
@@ -700,7 +741,7 @@ class FormatRulesTest extends \CIUnitTestCase
 			],
 			[
 				'0',
-				false,
+				true,
 			],
 			[
 				'1.0a',

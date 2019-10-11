@@ -41,7 +41,7 @@ Phar
 ----
 
 The other option is to download the .phar file from the `phpUnit <https://phpunit.de/getting-started/phpunit-7.html>`__ site.
-This is standalone file that should be placed within your project root.
+This is a standalone file that should be placed within your project root.
 
 
 ************************
@@ -62,13 +62,13 @@ The Test Class
 ==============
 
 In order to take advantage of the additional tools provided, your tests must extend ``\CIUnitTestCase``. All tests
-are expected to be located in the **tests/** directory by default.
+are expected to be located in the **tests/app** directory by default.
 
-To test a new library, **Foo**, you would create a new file at **tests/TestFoo.php**::
+To test a new library, **Foo**, you would create a new file at **tests/app/Libraries/FooTest.php**::
 
-    <?php namespace Tests;
+    <?php namespace App\Libraries;
 
-    class MyTests extends \CIUnitTestCase
+    class FooTest extends \CIUnitTestCase
     {
         public function testFooNotBar()
         {
@@ -76,13 +76,26 @@ To test a new library, **Foo**, you would create a new file at **tests/TestFoo.p
         }
     }
 
+To test one of your models, you might end up with something like this in ``tests/app/Models/OneOfMyModelsTest.php``::
+
+    <?php namespace App\Models;
+
+    class OneOfMyModelsTest extends \CIUnitTestCase
+    {
+        public function testFooNotBar()
+        {
+            . . .
+        }
+    }
+
+
 You can create any directory structure that fits your testing style/needs. When namespacing the test classes,
-remember that the **tests** directory is the root of the ``Tests`` namespace, so any classes you use must
-have the correct namespace relative to ``Tests``.
+remember that the **app** directory is the root of the ``App`` namespace, so any classes you use must
+have the correct namespace relative to ``App``.
 
-.. note:: Namespaces are not required for test classes, but they are helpful to ensure no class names collide.
+.. note:: Namespaces are not strictly required for test classes, but they are helpful to ensure no class names collide.
 
-When testing database results, you must use the `CIDatabaseTestClass </testing/database>`_ class.
+When testing database results, you must use the `CIDatabaseTestClass <database.html>`_ class.
 
 Additional Assertions
 ---------------------
@@ -130,7 +143,7 @@ in PHPunit <https://phpunit.readthedocs.io/en/7.4/annotations.html#runinseparate
 
 **assertHeaderNotEmitted($header, $ignoreCase=false)**
 
-Ensure that a header or cookie was actually emitted::
+Ensure that a header or cookie was not emitted::
 
     $response->setCookie('foo', 'bar');
 

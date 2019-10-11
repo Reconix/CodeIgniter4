@@ -1,4 +1,4 @@
-<?php namespace CodeIgniter\Log\Handlers;
+<?php
 
 /**
  * CodeIgniter
@@ -32,9 +32,11 @@
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
+
+namespace CodeIgniter\Log\Handlers;
 
 /**
  * Log error messages to file system
@@ -94,6 +96,7 @@ class FileHandler extends BaseHandler implements HandlerInterface
 	 * @param $message
 	 *
 	 * @return boolean
+	 * @throws \Exception
 	 */
 	public function handle($level, $message): bool
 	{
@@ -138,7 +141,10 @@ class FileHandler extends BaseHandler implements HandlerInterface
 		{
 			if (($result = fwrite($fp, substr($msg, $written))) === false)
 			{
+				// if we get this far, we'll never see this during travis-ci
+				// @codeCoverageIgnoreStart
 				break;
+				// @codeCoverageIgnoreEnd
 			}
 		}
 

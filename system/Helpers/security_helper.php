@@ -32,20 +32,28 @@
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT    MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
 
 use Config\Services;
 
+/**
+ * CodeIgniter Security Helpers
+ *
+ * @package CodeIgniter
+ */
+
 if (! function_exists('sanitize_filename'))
 {
 	/**
+	 * Sanitize a filename to use in a URI.
+	 *
 	 * @param string $filename
 	 *
 	 * @return string
 	 */
-	function sanitize_filename(string $filename)
+	function sanitize_filename(string $filename): string
 	{
 		return Services::security()->sanitizeFilename($filename);
 	}
@@ -61,7 +69,7 @@ if (! function_exists('strip_image_tags'))
 	 * @param  string $str
 	 * @return string
 	 */
-	function strip_image_tags(string $str)
+	function strip_image_tags(string $str): string
 	{
 		return preg_replace([
 			'#<img[\s/]+.*?src\s*=\s*(["\'])([^\\1]+?)\\1.*?\>#i',
@@ -78,7 +86,7 @@ if (! function_exists('encode_php_tags'))
 	/**
 	 * Convert PHP tags to entities
 	 *
-	 * @param  string
+	 * @param  string $str
 	 * @return string
 	 */
 	function encode_php_tags(string $str): string

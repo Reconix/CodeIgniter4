@@ -1,6 +1,4 @@
 <?php
-namespace CodeIgniter\Language;
-
 /**
  * CodeIgniter
  *
@@ -33,14 +31,18 @@ namespace CodeIgniter\Language;
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
+
+namespace CodeIgniter\Language;
 
 use CodeIgniter\Config\Services;
 
 /**
- * Class Language
+ * Handle system messages and localization.
+ *
+ * Locale-based, built on top of PHP internationalization.
  *
  * @package CodeIgniter\Language
  */
@@ -190,17 +192,6 @@ class Language
 	 */
 	protected function parseLine(string $line, string $locale): array
 	{
-		// If there's no possibility of a filename being in the string
-		// simply return the string, and they can parse the replacement
-		// without it being in a file.
-		if (strpos($line, '.') === false)
-		{
-			return [
-				null,
-				$line,
-			];
-		}
-
 		$file = substr($line, 0, strpos($line, '.'));
 		$line = substr($line, strlen($file) + 1);
 

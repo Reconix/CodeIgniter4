@@ -1,4 +1,4 @@
-<?php namespace CodeIgniter\HTTP;
+<?php
 
 /**
  * CodeIgniter
@@ -32,12 +32,14 @@
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
 
+namespace CodeIgniter\HTTP;
+
 /**
- * Representation of an iHTTP request.
+ * Representation of an HTTP request.
  */
 class Request extends Message implements RequestInterface
 {
@@ -82,7 +84,10 @@ class Request extends Message implements RequestInterface
 	{
 		$this->proxyIPs = $config->proxyIPs;
 
-		$this->method = $this->getServer('REQUEST_METHOD') ?? 'GET';
+		if (empty($this->method))
+		{
+			$this->method = $this->getServer('REQUEST_METHOD') ?? 'GET';
+		}
 	}
 
 	//--------------------------------------------------------------------
@@ -229,7 +234,7 @@ class Request extends Message implements RequestInterface
 	 */
 	public function isValidIP(string $ip = null, string $which = null): bool
 	{
-		switch (strtolower($which))
+		switch (strtolower( (string) $which))
 		{
 			case 'ipv4':
 				$which = FILTER_FLAG_IPV4;
@@ -254,7 +259,7 @@ class Request extends Message implements RequestInterface
 	 *
 	 * @return string
 	 */
-	public function getMethod($upper = false): string
+	public function getMethod(bool $upper = false): string
 	{
 		return ($upper) ? strtoupper($this->method) : strtolower($this->method);
 	}
@@ -280,9 +285,9 @@ class Request extends Message implements RequestInterface
 	/**
 	 * Fetch an item from the $_SERVER array.
 	 *
-	 * @param integer|null $index  Index for item to be fetched from $_SERVER
-	 * @param integer|null $filter A filter name to be applied
-	 * @param null         $flags
+	 * @param string|array|null $index  Index for item to be fetched from $_SERVER
+	 * @param integer|null      $filter A filter name to be applied
+	 * @param null              $flags
 	 *
 	 * @return mixed
 	 */
@@ -336,10 +341,10 @@ class Request extends Message implements RequestInterface
 	 *
 	 * http://php.net/manual/en/filter.filters.sanitize.php
 	 *
-	 * @param integer      $method Input filter constant
-	 * @param string|array $index
-	 * @param integer      $filter Filter constant
-	 * @param null         $flags
+	 * @param string            $method Input filter constant
+	 * @param string|array|null $index
+	 * @param integer|null      $filter Filter constant
+	 * @param mixed             $flags
 	 *
 	 * @return mixed
 	 */
@@ -409,7 +414,7 @@ class Request extends Message implements RequestInterface
 			}
 		}
 
-		if (empty($value))
+		if (! isset($value))
 		{
 			$value = $this->globals[$method][$index] ?? null;
 		}

@@ -6,13 +6,13 @@ class SecondaryModel extends Model
 {
 	protected $table = 'secondary';
 
-	protected $primaryKey = null;
+	protected $primaryKey = 'id';
 
 	protected $returnType = 'object';
 
 	protected $useSoftDeletes = false;
 
-	protected $dateFormat = 'integer';
+	protected $dateFormat = 'int';
 
 	protected $allowedFields = [
 		'key',

@@ -6,7 +6,7 @@ use CodeIgniter\View\Exceptions\ViewException;
 class ParserTest extends \CIUnitTestCase
 {
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 
@@ -47,7 +47,7 @@ class ParserTest extends \CIUnitTestCase
 		$parser = new Parser($this->config, $this->viewsDir, $this->loader);
 		$parser->setVar('teststring', 'Hello World');
 
-		$expected = '<h1>Hello World</h1>';
+		$expected = "<h1>Hello World</h1>\n";
 		$this->assertEquals($expected, $parser->render('template1'));
 	}
 
@@ -224,6 +224,31 @@ class ParserTest extends \CIUnitTestCase
 		$this->assertEquals("Super Heroes\nTom Dick Henry ", $parser->renderString($template));
 	}
 
+	public function testParseLoopObjectProperties()
+	{
+		$parser     = new Parser($this->config, $this->viewsDir, $this->loader);
+		$obj1       = new stdClass();
+		$obj1->name = 'Tom';
+		$obj2       = new stdClass();
+		$obj2->name = 'Dick';
+		$obj3       = new stdClass();
+		$obj3->name = 'Henry';
+
+		$data = [
+			'title'  => 'Super Heroes',
+			'powers' => [
+				$obj1,
+				$obj2,
+				$obj3,
+			],
+		];
+
+		$template = "{title}\n{powers}{name} {/powers}";
+
+		$parser->setData($data, 'html');
+		$this->assertEquals("Super Heroes\nTom Dick Henry ", $parser->renderString($template));
+	}
+
 	// --------------------------------------------------------------------
 
 	public function testParseLoopEntityProperties()
@@ -242,6 +267,7 @@ class ParserTest extends \CIUnitTestCase
 					],
 				];
 			}
+
 		};
 
 		$parser = new Parser($this->config, $this->viewsDir, $this->loader);
@@ -255,6 +281,45 @@ class ParserTest extends \CIUnitTestCase
 		$template = "{title}\n{powers} {foo} {bar} {bobbles}{name} {/bobbles}{/powers}";
 
 		$parser->setData($data);
+		$this->assertEquals("Super Heroes\n bar baz first second ", $parser->renderString($template));
+	}
+
+	public function testParseLoopEntityObjectProperties()
+	{
+		$power = new class extends \CodeIgniter\Entity
+		{
+			protected $attributes = [
+				'foo'     => 'bar',
+				'bar'     => 'baz',
+				'obj1'    => null,
+				'obj2'    => null,
+				'bobbles' => [],
+			];
+
+			public function __construct()
+			{
+				$this->obj1       = new stdClass();
+				$this->obj2       = new stdClass();
+				$this->obj1->name = 'first';
+				$this->obj2->name = 'second';
+				$this->bobbles    = [
+					$this->obj1,
+					$this->obj2,
+				];
+			}
+		};
+
+		$parser = new Parser($this->config, $this->viewsDir, $this->loader);
+		$data   = [
+			'title'  => 'Super Heroes',
+			'powers' => [
+				$power
+			],
+		];
+
+		$template = "{title}\n{powers} {foo} {bar} {bobbles}{name} {/bobbles}{/powers}";
+
+		$parser->setData($data, 'html');
 		$this->assertEquals("Super Heroes\n bar baz first second ", $parser->renderString($template));
 	}
 
@@ -685,6 +750,25 @@ class ParserTest extends \CIUnitTestCase
 	/**
 	 * @group parserplugins
 	 */
+	public function testParserPluginClosure()
+	{
+		$config                   = $this->config;
+		$config->plugins['hello'] = function (array $params = []) {
+			return 'Hello, ' . trim($params[0]);
+		};
+
+		$parser = new Parser($config, $this->viewsDir, $this->loader);
+
+		$template = '{+ hello world +}';
+
+		$this->assertEquals('Hello, world', $parser->renderString($template));
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * @group parserplugins
+	 */
 	public function testParserPluginParams()
 	{
 		$parser = new Parser($this->config, $this->viewsDir, $this->loader);
@@ -803,7 +887,7 @@ class ParserTest extends \CIUnitTestCase
 		$parser = new Parser($this->config, $this->viewsDir, $this->loader);
 		$parser->setVar('teststring', 'Hello World');
 
-		$expected = '<h1>Hello World</h1>';
+		$expected = "<h1>Hello World</h1>\n";
 		$this->assertEquals($expected, $parser->render('template1', ['cache' => 10, 'cache_name' => 'HelloWorld']));
 		// this second renderings should go thru the cache
 		$this->assertEquals($expected, $parser->render('template1', ['cache' => 10, 'cache_name' => 'HelloWorld']));
@@ -816,7 +900,7 @@ class ParserTest extends \CIUnitTestCase
 		$parser = new Parser($this->config, $this->viewsDir, $this->loader);
 		$parser->setData(['testString' => 'Hello World']);
 
-		$expected = '<h1>Hello World</h1>';
+		$expected = "<h1>Hello World</h1>\n";
 		$this->assertEquals($expected, $parser->render('Simpler'));
 	}
 
@@ -837,7 +921,7 @@ class ParserTest extends \CIUnitTestCase
 		$parser = new Parser($this->config, $this->viewsDir, $this->loader);
 		$parser->setData(['testString' => 'Hello World']);
 
-		$expected = '<h1>Hello World</h1>';
+		$expected = "<h1>Hello World</h1>\n";
 		$this->assertEquals($expected, $parser->render('Simpler', [], true));
 		$this->assertArrayHasKey('testString', $parser->getData());
 		$this->assertEquals($expected, $parser->render('Simpler', [], false));
@@ -855,6 +939,14 @@ class ParserTest extends \CIUnitTestCase
 		$this->assertArrayHasKey('testString', $parser->getData());
 		$this->assertEquals($expected, $parser->renderString($pattern, [], false));
 		$this->assertArrayNotHasKey('testString', $parser->getData());
+	}
+
+	public function testRenderFindsOtherView()
+	{
+		$parser = new Parser($this->config, $this->viewsDir, $this->loader);
+		$parser->setData(['testString' => 'Hello World']);
+		$expected = '<h1>Hello World</h1>';
+		$this->assertEquals($expected, $parser->render('Simpler.html'));
 	}
 
 }

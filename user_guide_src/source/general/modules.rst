@@ -16,7 +16,7 @@ Namespaces
 ==========
 
 The core element of the modules functionality comes from the :doc:`PSR4-compatible autoloading </concepts/autoloader>`
-that CodeIgniter uses. While any code can use the PSR4 autoloader and namespaces, the only way to take full advantage of
+that CodeIgniter uses. While any code can use the PSR4 autoloader and namespaces, the primary way to take full advantage of
 modules is to namespace your code and add it to **app/Config/Autoload.php**, in the ``psr4`` section.
 
 For example, let's say we want to keep a simple blog module that we can re-use between applications. We might create
@@ -32,8 +32,11 @@ directory in the main project root::
 
 Open **app/Config/Autoload.php** and add the **Acme** namespace to the ``psr4`` array property::
 
-    public $psr4 = [
-        'Acme' => ROOTPATH.'acme'
+    $psr4 = [
+        'Config'        => APPPATH . 'Config',
+        APP_NAMESPACE   => APPPATH,                // For custom namespace
+        'App'           => APPPATH,                // To ensure filters, etc still found,
+        'Acme'          => ROOTPATH.'acme'
     ];
 
 Now that this is setup we can access any file within the **acme** folder through the ``Acme`` namespace. This alone
@@ -81,7 +84,7 @@ for familiar directories/files.
 
 When at the **acme** namespace above, we would need to make one small adjustment to make it so the files could be found:
 each "module" within the namespace would have to have it's own namespace defined there. **Acme** would be changed
-to **Acme\Blog**. Once  your module folder has been defined, the discover process would look for a Routes file, for example,
+to **Acme\Blog**. Once your module folder has been defined, the discover process would look for a Routes file, for example,
 at **/acme/Blog/Config/Routes.php**, just as if it was another application.
 
 Enable/Disable Discover
@@ -95,6 +98,17 @@ Specify Discovery Items
 
 With the **$activeExplorers** option, you can specify which items are automatically discovered. If the item is not
 present, then no auto-discovery will happen for that item, but the others in the array will still be discovered.
+
+Discovery and Composer
+======================
+
+Packages that were installed via Composer will also be discovered by default. This only requires that the namespace
+that Composer knows about is a PSR4 namespace. PSR0 namespaces will not be detected.
+
+If you do not want all of Composer's known directories to be scanned when locating files, you can turn this off
+by editing the ``$discoverInComposer`` variable in ``Config\Modules.php``::
+
+    public $discoverInComposer = false;
 
 ==================
 Working With Files

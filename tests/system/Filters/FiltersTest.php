@@ -1,6 +1,7 @@
 <?php
 namespace CodeIgniter\Filters;
 
+use Config\Filters as FilterConfig;
 use CodeIgniter\Config\Services;
 use CodeIgniter\Filters\Exceptions\FilterException;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -20,7 +21,7 @@ class FiltersTest extends \CIUnitTestCase
 	protected $request;
 	protected $response;
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 
@@ -29,7 +30,6 @@ class FiltersTest extends \CIUnitTestCase
 	}
 
 	//--------------------------------------------------------------------
-
 	public function testProcessMethodDetectsCLI()
 	{
 		$config  = [
@@ -119,7 +119,7 @@ class FiltersTest extends \CIUnitTestCase
 		$config  = [
 			'globals' => [
 				'before' => [
-					'foo' => ['bar'],
+					'foo' => ['bar'], // not excluded
 					'bar'
 				],
 				'after'  => [
@@ -131,8 +131,8 @@ class FiltersTest extends \CIUnitTestCase
 
 		$expected = [
 			'before' => [
-				'foo' => ['bar'],
-				'bar'
+				'foo',
+				'bar',
 			],
 			'after'  => ['baz'],
 		];
@@ -214,7 +214,9 @@ class FiltersTest extends \CIUnitTestCase
 
 		$expected = [
 			'before' => [],
-			'after'  => ['foo'],
+			'after'  => [
+				'foo',
+			],
 		];
 
 		$this->assertEquals($expected, $filters->initialize($uri)->getFilters());
@@ -448,7 +450,8 @@ class FiltersTest extends \CIUnitTestCase
 
 		$expected = [
 			'before' => [
-				'bar', 'foo' => ['except' => 'george/*']
+				'foo',
+				'bar',
 			],
 			'after'  => ['baz'],
 		];
@@ -506,7 +509,9 @@ class FiltersTest extends \CIUnitTestCase
 			'before' => [
 				'bar'
 			],
-			'after'  => ['baz', 'foo' => ['except' => 'george/*']
+			'after'  => [
+				'foo',
+				'baz',
 			],
 		];
 
@@ -635,6 +640,197 @@ class FiltersTest extends \CIUnitTestCase
 		$filters = $filters->initialize('admin/foo/bar');
 
 		$filters->enableFilter('goggle', 'before');
+	}
+
+	/**
+	 * @see https://github.com/codeigniter4/CodeIgniter4/issues/1664
+	 */
+	public function testMatchesURICaseInsensitively()
+	{
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+
+		$config  = [
+			'globals' => [
+				'before' => [
+					'foo' => ['except' => 'Admin/*'],
+					'bar'
+				],
+				'after'  => [
+					'foo' => ['except' => 'Admin/*'],
+					'baz'
+				],
+			],
+			'filters' => [
+				'frak' => [
+					'before' => ['Admin/*'],
+					'after'  => ['Admin/*'],
+				],
+			],
+		];
+		$filters = new Filters((object) $config, $this->request, $this->response);
+		$uri     = 'admin/foo/bar';
+
+		$expected = [
+			'before' => [
+				'bar',
+				'frak',
+			],
+			'after'  => [
+				'baz',
+				'frak',
+			],
+		];
+
+		$this->assertEquals($expected, $filters->initialize($uri)->getFilters());
+	}
+
+	/**
+	 * @see https://github.com/codeigniter4/CodeIgniter4/issues/1907
+	 */
+	public function testFilterMatching()
+	{
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+
+		$config = [
+			'filters' => [
+				'frak' => [
+					'before' => ['admin*'],
+					'after'  => ['admin/*'],
+				],
+			],
+		];
+
+		$filters = new Filters((object) $config, $this->request, $this->response);
+		$uri     = 'admin';
+
+		$expected = [
+			'before' => [
+				'frak',
+			],
+			'after'  => [],
+		];
+
+		$actual = $filters->initialize($uri)->getFilters();
+		$this->assertEquals($expected, $actual);
+	}
+
+	/**
+	 * @see https://github.com/codeigniter4/CodeIgniter4/issues/1907
+	 */
+	public function testGlobalFilterMatching()
+	{
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+
+		$config = [
+			'globals' => [
+				'before' => [
+					'foo' => ['except' => 'admin*'],
+					'one',
+				],
+				'after'  => [
+					'foo' => ['except' => 'admin/*'],
+					'two',
+				],
+			],
+		];
+
+		$filters = new Filters((object) $config, $this->request, $this->response);
+		$uri     = 'admin';
+
+		$expected = [
+			'before' => [
+				'one'
+			],
+			'after'  => [
+				'foo',
+				'two',
+			],
+		];
+
+		$actual = $filters->initialize($uri)->getFilters();
+		$this->assertEquals($expected, $actual);
+	}
+
+	/**
+	 * @see https://github.com/codeigniter4/CodeIgniter4/issues/1907
+	 */
+	public function testCombinedFilterMatching()
+	{
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+
+		$config = [
+			'globals' => [
+				'before' => [
+					'foo' => ['except' => 'admin*'],
+					'one',
+				],
+				'after'  => [
+					'foo' => ['except' => 'admin/*'],
+					'two',
+				],
+			],
+			'filters' => [
+				'frak' => [
+					'before' => ['admin*'],
+					'after'  => ['admin/*'],
+				],
+			],
+		];
+
+		$filters = new Filters((object) $config, $this->request, $this->response);
+		$uri     = 'admin123';
+
+		$expected = [
+			'before' => [
+				'one',
+				'frak',
+			],
+			'after'  => [
+				'foo',
+				'two',
+			],
+		];
+
+		$this->assertEquals($expected, $filters->initialize($uri)->getFilters());
+	}
+
+	/**
+	 * @see https://github.com/codeigniter4/CodeIgniter4/issues/1907
+	 */
+	public function testSegmentedFilterMatching()
+	{
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+
+		$config = [
+			'globals' => [
+				'before' => [
+					'foo' => ['except' => 'admin*'],
+				],
+				'after'  => [
+					'foo' => ['except' => 'admin/*'],
+				],
+			],
+			'filters' => [
+				'frak' => [
+					'before' => ['admin*'],
+					'after'  => ['admin/*'],
+				],
+			],
+		];
+
+		$filters = new Filters((object) $config, $this->request, $this->response);
+		$uri     = 'admin/123';
+
+		$expected = [
+			'before' => [
+				'frak',
+			],
+			'after'  => [
+				'frak',
+			],
+		];
+
+		$this->assertEquals($expected, $filters->initialize($uri)->getFilters());
 	}
 
 }

@@ -1,4 +1,4 @@
-<?php namespace CodeIgniter\Database;
+<?php
 
 /**
  * CodeIgniter
@@ -32,12 +32,13 @@
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
 
+namespace CodeIgniter\Database;
+
 use CodeIgniter\Config\BaseConfig;
-use Config\Database;
 
 /**
  * Class Config
@@ -74,13 +75,19 @@ class Config extends BaseConfig
 	 */
 	public static function connect($group = null, bool $getShared = true)
 	{
+		// If a DB connection is passed in, just pass it back
+		if ($group instanceof BaseConnection)
+		{
+			return $group;
+		}
+
 		if (is_array($group))
 		{
 			$config = $group;
 			$group  = 'custom-' . md5(json_encode($config));
 		}
 
-		$config = $config ?? new \Config\Database();
+		$config = $config ?? config('Database');
 
 		if (empty($group))
 		{
@@ -118,7 +125,7 @@ class Config extends BaseConfig
 	 *
 	 * @return array
 	 */
-	public static function getConnections()
+	public static function getConnections(): array
 	{
 		return static::$instances;
 	}
@@ -135,44 +142,7 @@ class Config extends BaseConfig
 	 */
 	public static function forge($group = null)
 	{
-		// Allow custom connections to be sent in
-		if (is_array($group))
-		{
-			$config = $group;
-			$group  = 'custom-' . md5(json_encode($config));
-		}
-		else
-		{
-			$config = config('Database');
-		}
-
-		static::ensureFactory();
-
-		if (empty($group))
-		{
-			$group = ENVIRONMENT === 'testing' ? 'tests' : $config->defaultGroup;
-		}
-
-		if (is_string($group) && ! isset($config->$group) && ! is_array($config))
-		{
-			throw new \InvalidArgumentException($group . ' is not a valid database connection group.');
-		}
-
-		if (! isset(static::$instances[$group]))
-		{
-			if (is_array($config))
-			{
-				$db = static::connect($config);
-			}
-			else
-			{
-				$db = static::connect($group);
-			}
-		}
-		else
-		{
-			$db = static::$instances[$group];
-		}
+		$db = static::connect($group);
 
 		return static::$factory->loadForge($db);
 	}
@@ -182,50 +152,13 @@ class Config extends BaseConfig
 	/**
 	 * Returns a new instance of the Database Utilities class.
 	 *
-	 * @param string|null $group
+	 * @param string|array|null $group
 	 *
 	 * @return BaseUtils
 	 */
-	public static function utils(string $group = null)
+	public static function utils($group = null)
 	{
-		// Allow custom connections to be sent in
-		if (is_array($group))
-		{
-			$config = $group;
-			$group  = 'custom-' . md5(json_encode($config));
-		}
-		else
-		{
-			$config = config('Database');
-		}
-
-		static::ensureFactory();
-
-		if (empty($group))
-		{
-			$group = ENVIRONMENT === 'testing' ? 'tests' : $config->defaultGroup;
-		}
-
-		if (is_string($group) && ! isset($config->$group) && ! is_array($config))
-		{
-			throw new \InvalidArgumentException($group . ' is not a valid database connection group.');
-		}
-
-		if (! isset(static::$instances[$group]))
-		{
-			if (is_array($config))
-			{
-				$db = static::connect($config);
-			}
-			else
-			{
-				$db = static::connect($group);
-			}
-		}
-		else
-		{
-			$db = static::$instances[$group];
-		}
+		$db = static::connect($group);
 
 		return static::$factory->loadUtils($db);
 	}
@@ -241,7 +174,7 @@ class Config extends BaseConfig
 	 */
 	public static function seeder(string $group = null)
 	{
-		$config = new \Config\Database();
+		$config = config('Database');
 
 		return new Seeder($config, static::connect($group));
 	}
@@ -253,12 +186,12 @@ class Config extends BaseConfig
 	 */
 	protected static function ensureFactory()
 	{
-		if (static::$factory instanceof \CodeIgniter\Database\Database)
+		if (static::$factory instanceof Database)
 		{
 			return;
 		}
 
-		static::$factory = new \CodeIgniter\Database\Database();
+		static::$factory = new Database();
 	}
 
 	//--------------------------------------------------------------------

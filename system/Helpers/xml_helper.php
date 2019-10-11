@@ -35,16 +35,22 @@
  * @filesource
  */
 
+/**
+ * CodeIgniter XML Helpers
+ *
+ * @package CodeIgniter
+ */
+
 if (! function_exists('xml_convert'))
 {
 	/**
 	 * Convert Reserved XML characters to Entities
 	 *
-	 * @param  string
-	 * @param  boolean
+	 * @param  string  $str
+	 * @param  boolean $protect_all
 	 * @return string
 	 */
-	function xml_convert(string $str, $protect_all = false): string
+	function xml_convert(string $str, bool $protect_all = false): string
 	{
 		$temp = '__TEMP_AMPERSANDS__';
 
@@ -73,7 +79,7 @@ if (! function_exists('xml_convert'))
 			'&apos;',
 			'&#45;',
 		];
-		$str         = str_replace($original, $replacements, $str);
+		$str         = str_replace($original, $replacement, $str);
 
 		// Decode the temp markers back to entities
 		$str = preg_replace('/' . $temp . '(\d+);/', '&#\\1;', $str);

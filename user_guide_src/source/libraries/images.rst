@@ -57,7 +57,7 @@ For example, to create an image thumbnail you'll do this::
 		->fit(100, 100, 'center')
 		->save('/path/to/image/mypic_thumb.jpg');
 
-The above code tells the library  to look for an image
+The above code tells the library to look for an image
 called *mypic.jpg* located in the source_image folder, then create a
 new image from it that is 100 x 100pixels using the GD2 image_library,
 and save it to a new file (the thumb). Since it is using the fit() method,
@@ -89,12 +89,26 @@ starting at the top left corner. The result would be saved as the thumbnail.
 	while processing images you may need to limit their maximum size, and/or
 	adjust PHP memory limits.
 
+Image Quality
+=============
+
+``save()`` can take an additional parameter ``$quality`` to alter the resulting image
+quality. Values range from 0 to 100 with 90 being the framework default. This parameter
+only applies to JPEG images and will be ignored otherwise::
+
+	$image = Config\Services::image()
+		->withFile('/path/to/image/mypic.jpg')
+		->save('/path/to/image/my_low_quality_pic.jpg', 10);
+
+.. note:: Higher quality will result in larger file sizes. See also https://www.php.net/manual/en/function.imagejpeg.php
+
 Processing Methods
 ==================
 
-There are six available processing methods:
+There are seven available processing methods:
 
 -  $image->crop()
+-  $image->convert()
 -  $image->fit()
 -  $image->flatten()
 -  $image->flip()
@@ -154,6 +168,23 @@ offset values::
 		->withFile('/path/to/image/mypic.jpg')
 		->crop(50, 50, $xOffset, $yOffset)
 		->save('path/to/new/image.jpg');
+
+Converting Images
+-----------------
+
+The ``convert()`` method changes the library's internal indicator for the desired file format. This doesn't touch the actual image resource, but indicates to ``save()`` what format to use::
+
+	convert(int $imageType)
+
+- **$imageType** is one of PHP's image type constants (see for example https://www.php.net/manual/en/function.image-type-to-mime-type.php)::
+
+	Services::image()
+		->withFile('/path/to/image/mypic.jpg')
+		->convert(IMAGETYPE_PNG)
+		->save('path/to/new/image.png');
+
+.. note:: ImageMagick already saves files in the type
+	indicated by their extension, ignoring **$imageType**
 
 Fitting Images
 --------------
@@ -261,7 +292,7 @@ Adding a Text Watermark
 -----------------------
 
 You can overlay a text watermark onto the image very simply with the text() method. This is useful for placing copyright
-notices, photogropher names, or simply marking the images as a preview so they won't be used in other people's final
+notices, photographer names, or simply marking the images as a preview so they won't be used in other people's final
 products.
 
 ::

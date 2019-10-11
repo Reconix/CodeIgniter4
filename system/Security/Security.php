@@ -1,4 +1,4 @@
-<?php namespace CodeIgniter\Security;
+<?php
 
 /**
  * CodeIgniter
@@ -32,9 +32,11 @@
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
+
+namespace CodeIgniter\Security;
 
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\Security\Exceptions\SecurityException;
@@ -72,6 +74,15 @@ class Security
 	 * @var string
 	 */
 	protected $CSRFTokenName = 'CSRFToken';
+
+	/**
+	 * CSRF Header name
+	 *
+	 * Token name for Cross Site Request Forgery protection cookie.
+	 *
+	 * @var string
+	 */
+	protected $CSRFHeaderName = 'CSRFToken';
 
 	/**
 	 * CSRF Cookie name
@@ -161,12 +172,15 @@ class Security
 	 * setup initial state.
 	 *
 	 * @param \Config\App $config
+	 *
+	 * @throws \Exception
 	 */
 	public function __construct($config)
 	{
 		// Store our CSRF-related settings
 		$this->CSRFExpire     = $config->CSRFExpire;
 		$this->CSRFTokenName  = $config->CSRFTokenName;
+		$this->CSRFHeaderName = $config->CSRFHeaderName;
 		$this->CSRFCookieName = $config->CSRFCookieName;
 		$this->CSRFRegenerate = $config->CSRFRegenerate;
 
@@ -190,9 +204,10 @@ class Security
 	/**
 	 * CSRF Verify
 	 *
-	 * @param  RequestInterface $request
+	 * @param RequestInterface $request
+	 *
 	 * @return $this|false
-	 * @throws \LogicException
+	 * @throws \Exception
 	 */
 	public function CSRFVerify(RequestInterface $request)
 	{
@@ -201,21 +216,40 @@ class Security
 		{
 			return $this->CSRFSetCookie($request);
 		}
-
-		// Do the tokens exist in both the _POST and _COOKIE arrays?
-		if (! isset($_POST[$this->CSRFTokenName], $_COOKIE[$this->CSRFCookieName]) || $_POST[$this->CSRFTokenName] !== $_COOKIE[$this->CSRFCookieName]
+		
+		// Do the tokens exist in _POST, HEADER or optionally php:://input - json data
+        $CSRFTokenValue = $_POST[$this->CSRFTokenName] ??
+            (!is_null($request->getHeader($this->CSRFHeaderName)) && !empty($request->getHeader($this->CSRFHeaderName)->getValue()) ?
+                $request->getHeader($this->CSRFHeaderName)->getValue() :
+                (!empty($request->getBody()) && !empty($json = json_decode($request->getBody())) && json_last_error() === JSON_ERROR_NONE ?
+                    ($json->{$this->CSRFTokenName} ?? null) :
+                    null));
+		
+		// Do the tokens exist in both the _POST/POSTed JSON and _COOKIE arrays?
+		if (! isset($CSRFTokenValue, $_COOKIE[$this->CSRFCookieName]) || $CSRFTokenValue !== $_COOKIE[$this->CSRFCookieName]
 		) // Do the tokens match?
 		{
 			throw SecurityException::forDisallowedAction();
 		}
 
 		// We kill this since we're done and we don't want to pollute the _POST array
-		unset($_POST[$this->CSRFTokenName]);
+		if (isset($_POST[$this->CSRFTokenName]))
+		{
+			unset($_POST[$this->CSRFTokenName]);
+			$request->setGlobal('post', $_POST);
+		}
+		// We kill this since we're done and we don't want to pollute the JSON data
+		elseif (isset($json->{$this->CSRFTokenName}))
+		{
+			unset($json->{$this->CSRFTokenName});
+			$request->setBody(json_encode($json));
+		}
 
 		// Regenerate on every submission?
 		if ($this->CSRFRegenerate)
 		{
 			// Nothing should last forever
+			$this->CSRFHash = null;
 			unset($_COOKIE[$this->CSRFCookieName]);
 		}
 
@@ -264,7 +298,7 @@ class Security
 	 *
 	 * @return string
 	 */
-	public function getCSRFHash()
+	public function getCSRFHash(): string
 	{
 		return $this->CSRFHash;
 	}
@@ -276,7 +310,7 @@ class Security
 	 *
 	 * @return string
 	 */
-	public function getCSRFTokenName()
+	public function getCSRFTokenName(): string
 	{
 		return $this->CSRFTokenName;
 	}
@@ -287,8 +321,9 @@ class Security
 	 * Sets the CSRF Hash and cookie.
 	 *
 	 * @return string
+	 * @throws \Exception
 	 */
-	protected function CSRFSetHash()
+	protected function CSRFSetHash(): string
 	{
 		if ($this->CSRFHash === null)
 		{
@@ -327,7 +362,7 @@ class Security
 	 *
 	 * @return string
 	 */
-	public function sanitizeFilename($str, $relative_path = false)
+	public function sanitizeFilename(string $str, bool $relative_path = false): string
 	{
 		$bad = $this->filenameBadChars;
 

@@ -9,7 +9,7 @@ class InsertTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 
@@ -26,10 +26,19 @@ class InsertTest extends \CIUnitTestCase
 			'id'   => 1,
 			'name' => 'Grocery Sales',
 		];
-		$builder->insert($insertData, true, true);
+		$builder->testMode()->insert($insertData, true);
 
 		$expectedSQL   = 'INSERT INTO "jobs" ("id", "name") VALUES (1, \'Grocery Sales\')';
-		$expectedBinds = $insertData;
+		$expectedBinds = [
+			'id'   => [
+				1,
+				true,
+			],
+			'name' => [
+				'Grocery Sales',
+				true,
+			],
+		];
 
 		$this->assertEquals($expectedSQL, str_replace("\n", ' ', $builder->getCompiledInsert()));
 		$this->assertEquals($expectedBinds, $builder->getBinds());
@@ -44,7 +53,7 @@ class InsertTest extends \CIUnitTestCase
 		$this->expectException('\CodeIgniter\Database\Exceptions\DatabaseException');
 		$this->expectExceptionMessage('You must use the "set" method to update an entry.');
 
-		$builder->insert(null, true, true);
+		$builder->testMode()->insert(null, true);
 	}
 
 	//--------------------------------------------------------------------
@@ -97,7 +106,7 @@ class InsertTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
-	public function testInsertBatchThrowsExceptionOnEmptData()
+	public function testInsertBatchThrowsExceptionOnEmptyData()
 	{
 		$builder = $this->db->table('jobs');
 

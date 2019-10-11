@@ -1,6 +1,5 @@
-=====================
 IncomingRequest Class
-=====================
+*********************
 
 The IncomingRequest class provides an object-oriented representation of an HTTP request from a client, like a browser.
 It extends from, and has access to all the methods of the :doc:`Request </incoming/request>` and :doc:`Message </incoming/message>`
@@ -11,12 +10,13 @@ classes, in addition to the methods listed below.
     :depth: 2
 
 Accessing the Request
-=====================
+----------------------------------------------------------------------------
 
 An instance of the request class already populated for you if the current class is a descendant of
 ``CodeIgniter\Controller`` and can be accessed as a class property::
 
-        namespace App\Controllers;
+        <?php namespace App\Controllers;
+
         user CodeIgniter\Controller;
 
 	class UserController extends Controller
@@ -38,7 +38,8 @@ get a copy of it through the :doc:`Services class </concepts/services>`::
 It's preferable, though, to pass the request in as a dependency if the class is anything other than
 the controller, where you can save it as a class property::
 
-	use CodeIgniter\HTTP\RequestInterface;
+	<?php 
+        use CodeIgniter\HTTP\RequestInterface;
 
 	class SomeClass
 	{
@@ -53,7 +54,7 @@ the controller, where you can save it as a class property::
 	$someClass = new SomeClass(\Config\Services::request());
 
 Determining Request Type
-========================
+----------------------------------------------------------------------------
 
 A request could be of several types, including an AJAX request or a request from the command line. This can
 be checked with the ``isAJAX()`` and ``isCLI()`` methods::
@@ -89,7 +90,7 @@ You can also check if the request was made through and HTTPS connection with the
 	}
 
 Retrieving Input
-================
+----------------------------------------------------------------------------
 
 You can retrieve input from $_SERVER, $_GET, $_POST, $_ENV, and $_SESSION through the Request object.
 The data is not automatically filtered and returns the raw input data as passed in the request. The main
@@ -150,11 +151,10 @@ This will retrieve data and convert it to an array. Like this::
 		'Param2' => 'Value2'
 	]
 
-Filtering Input Data
---------------------
+**Filtering Input Data**
 
 To maintain security of your application, you will want to filter all input as you access it. You can
-pass the type of filter to use in as the last parameter of any of these methods. The native ``filter_var()``
+pass the type of filter to use as the last parameter of any of these methods. The native ``filter_var()``
 function is used for the filtering. Head over to the PHP manual for a list of `valid
 filter types <http://php.net/manual/en/filter.filters.php>`_.
 
@@ -166,10 +166,10 @@ All of the methods mentioned above support the filter type passed in as the last
 exception of ``getJSON()``.
 
 Retrieving Headers
-==================
+----------------------------------------------------------------------------
 
 You can get access to any header that was sent with the request with the ``getHeaders()`` method, which returns
-an array of all headers, with the key as the name of the header, and the value being an instance of
+an array of all headers, with the key as the name of the header, and the value is an instance of
 ``CodeIgniter\HTTP\Header``::
 
 	var_dump($request->getHeaders());
@@ -205,7 +205,7 @@ If you need the entire header, with the name and values in a single string, simp
 	echo (string)$header;
 
 The Request URL
-===============
+----------------------------------------------------------------------------
 
 You can retrieve a :doc:`URI </libraries/uri>` object that represents the current URI for this request through the
 ``$request->uri`` property. You can cast this object as a string to get a full URL for the current request::
@@ -228,7 +228,7 @@ The object gives you full abilities to grab any part of the request on it's own:
 	echo $uri->getTotalSegments();  // 3
 
 Uploaded Files
-==============
+----------------------------------------------------------------------------
 
 Information about all uploaded files can be retrieved through ``$request->getFiles()``, which returns a
 :doc:`FileCollection </libraries/uploaded_files>` instance. This helps to ease the pain of working with uploaded files,
@@ -253,12 +253,17 @@ and uses best practices to minimize any security risks.
 		echo $file->getType();          // image/jpg
 	}
 
-You can also retrieve a single file based on the filename given in the HTML file input::
+You can retrieve a single file uploaded on its own, based on the filename given in the HTML file input::
 
 	$file = $request->getFile('uploadedfile');
 
+You can retrieve an array of same-named files uploaded as part of a 
+multi-file upload, based on the filename given in the HTML file input::
+
+	$files = $request->getFileMultiple('uploadedfile');
+
 Content Negotiation
-===================
+----------------------------------------------------------------------------
 
 You can easily negotiate content types with the request through the ``negotiate()`` method::
 
@@ -271,7 +276,7 @@ You can easily negotiate content types with the request through the ``negotiate(
 See the :doc:`Content Negotiation </incoming/content_negotiation>` page for more details.
 
 Class Reference
----------------
+===========================================================================
 
 .. note:: In addition to the methods listed here, this class inherits the methods from the
 	:doc:`Request Class </incoming/request>` and the :doc:`Message Class </incoming/message>`.
@@ -344,7 +349,7 @@ The methods provided by the parent classes that are available are:
 
 			$request->getVar(null, FILTER_SANITIZE_STRING); // returns all POST items with string sanitation
 
-		To return an array of multiple  POST parameters, pass all the required keys as an array::
+		To return an array of multiple POST parameters, pass all the required keys as an array::
 
 			$request->getVar(['field1', 'field2']);
 
@@ -403,6 +408,7 @@ The methods provided by the parent classes that are available are:
 
 	.. php:method:: getCookie([$index = null[, $filter = null[, $flags = null]]])
 
+                :noindex:
 		:param	mixed	$index: COOKIE name
 		:param  int     $filter: The type of filter to apply. A list of filters can be found `here <http://php.net/manual/en/filter.filters.php>`__.
 		:param  int     $flags: Flags to apply. A list of flags can be found `here <http://php.net/manual/en/filter.filters.flags.php>`__.

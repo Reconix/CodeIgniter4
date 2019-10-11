@@ -1,4 +1,4 @@
-<?php namespace CodeIgniter\Session\Handlers;
+<?php
 
 /**
  * CodeIgniter
@@ -32,9 +32,11 @@
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
+
+namespace CodeIgniter\Session\Handlers;
 
 use CodeIgniter\Session\Exceptions\SessionException;
 use CodeIgniter\Config\BaseConfig;
@@ -88,6 +90,7 @@ class DatabaseHandler extends BaseHandler implements \SessionHandlerInterface
 	 * Constructor
 	 *
 	 * @param BaseConfig $config
+	 * @param string     $ipAddress
 	 */
 	public function __construct(BaseConfig $config, string $ipAddress)
 	{
@@ -152,7 +155,7 @@ class DatabaseHandler extends BaseHandler implements \SessionHandlerInterface
 	 *
 	 * @return string    Serialized session data
 	 */
-	public function read($sessionID)
+	public function read($sessionID): string
 	{
 		if ($this->lockSession($sessionID) === false)
 		{
@@ -161,7 +164,10 @@ class DatabaseHandler extends BaseHandler implements \SessionHandlerInterface
 		}
 
 		// Needed by write() to detect session_regenerate_id() calls
-		$this->sessionID = $sessionID;
+		if(is_null($this->sessionID))
+		{
+			$this->sessionID = $sessionID;
+		}
 
 		$builder = $this->db->table($this->table)
 				->select('data')
@@ -225,11 +231,6 @@ class DatabaseHandler extends BaseHandler implements \SessionHandlerInterface
 		// Was the ID regenerated?
 		elseif ($sessionID !== $this->sessionID)
 		{
-			if (! $this->releaseLock() || ! $this->lockSession($sessionID))
-			{
-				return $this->fail();
-			}
-
 			$this->rowExists = false;
 			$this->sessionID = $sessionID;
 		}
@@ -350,6 +351,12 @@ class DatabaseHandler extends BaseHandler implements \SessionHandlerInterface
 
 	//--------------------------------------------------------------------
 
+	/**
+	 * Lock the session.
+	 *
+	 * @param  string $sessionID
+	 * @return boolean
+	 */
 	protected function lockSession(string $sessionID): bool
 	{
 		if ($this->platform === 'mysql')

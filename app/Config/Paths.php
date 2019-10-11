@@ -35,7 +35,7 @@ class Paths
 	 *
 	 * NO TRAILING SLASH!
 	 */
-	public $appDirectory = __DIR__ . '/../../app';
+	public $appDirectory = __DIR__ . '/..';
 
 	/*
 	 * ---------------------------------------------------------------
@@ -56,10 +56,6 @@ class Paths
 	 * ---------------------------------------------------------------
 	 *
 	 * This variable must contain the name of your "tests" directory.
-	 * The writable directory allows you to group all directories that
-	 * need write permission to a single place that can be tucked away
-	 * for maximum security, keeping it out of the app and/or
-	 * system directories.
 	 */
 	public $testsDirectory = __DIR__ . '/../../tests';
 
@@ -73,5 +69,5 @@ class Paths
 	 * default this is in `app/Views`. This value
 	 * is used when no value is provided to `Services::renderer()`.
 	 */
-	public $viewDirectory = __DIR__ . '/../../app/Views';
+	public $viewDirectory = __DIR__ . '/../Views';
 }

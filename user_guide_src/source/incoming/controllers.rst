@@ -28,7 +28,8 @@ Let's try it: Hello World!
 Let's create a simple controller so you can see it in action. Using your text editor, create a file called Blog.php,
 and put the following code in it::
 
-	namespace App\Controllers;
+	<?php namespace App\Controllers;
+
         use CodeIgniter\Controller;
 
 	class Blog extends Controller
@@ -55,7 +56,8 @@ If you did it right, you should see::
 
 This is valid::
 
-	namespace App\Controllers;
+	<?php namespace App\Controllers;
+
         use CodeIgniter\Controller;
 
 	class Blog extends Controller {
@@ -64,7 +66,8 @@ This is valid::
 
 This is **not** valid::
 
-	namespace App\Controllers;
+	<?php namespace App\Controllers;
+
         use CodeIgniter\Controller;
 
 	class blog extends Controller {
@@ -77,7 +80,7 @@ class so that it can inherit all its methods.
 Methods
 =======
 
-In the above example the method name is ``index()``. The "index" method
+In the above example, the method name is ``index()``. The "index" method
 is always loaded by default if the **second segment** of the URI is
 empty. Another way to show your "Hello World" message would be this::
 
@@ -88,7 +91,8 @@ controller gets called.**
 
 Let's try it. Add a new method to your controller::
 
-	namespace App\Controllers;
+	<?php namespace App\Controllers;
+
         use CodeIgniter\Controller;
 
 	class Blog extends Controller
@@ -123,7 +127,8 @@ For example, let's say you have a URI like this::
 
 Your method will be passed URI segments 3 and 4 ("sandals" and "123")::
 
-	namespace App\Controllers;
+	<?php namespace App\Controllers;
+
         use CodeIgniter\Controller;
 
 	class Products extends Controller
@@ -150,7 +155,7 @@ file and set this variable::
 
 	$routes->setDefaultController('Blog');
 
-Where 'Blog' is the name of the controller class you want used. If you now
+Where 'Blog' is the name of the controller class you want to be used. If you now
 load your main index.php file without specifying any URI segments you'll
 see your "Hello World" message by default.
 
@@ -207,7 +212,7 @@ Example::
 Private methods
 ===============
 
-In some cases you may want certain methods hidden from public access.
+In some cases, you may want certain methods hidden from public access.
 In order to achieve this, simply declare the method as being private
 or protected and it will not be served via a URL request. For example,
 if you were to have a method like this::
@@ -235,7 +240,7 @@ one and place your controller classes within them.
 	specify the folder. For example, let's say you have a controller located
 	here::
 
-		application/controllers/products/Shoes.php
+		app/Controllers/products/Shoes.php
 
 	To call the above controller your URI will look something like this::
 
@@ -306,13 +311,13 @@ inside the controller::
 		protected $helpers = ['url', 'form'];
 	}
 
-Validating $_POST data
+Validating data
 ======================
 
-The controller also provides a convenience method to make validating $_POST data a little simpler, ``validate()`` that
+The controller also provides a convenience method to make validating data a little simpler, ``validate()`` that
 takes an array of rules to test against as the first parameter, and, optionally,
 an array of custom error messages to display if the items don't pass. Internally, this uses the controller's
-**$this->request** instance to get the POST data through. The :doc:`Validation Library docs </libraries/validation>`
+**$this->request** instance to get the data through. The :doc:`Validation Library docs </libraries/validation>`
 has details on the format of the rules and messages arrays, as well as available rules.::
 
     public function updateUser(int $userID)

@@ -5,16 +5,16 @@
     "homepage": "https://codeigniter.com",
     "license": "MIT",
     "require": {
-        "php": ">=7.1",
-        "codeigniter4/framework": "^4@alpha"
+        "php": ">=7.2",
+        "codeigniter4/framework": "^4@rc"
     },
     "require-dev": {
-        "mikey179/vfsStream": "1.6.*",
+        "mikey179/vfsstream": "1.6.*",
         "phpunit/phpunit": "^7.0"
     },
     "scripts": {
         "post-update-cmd": [
-            "composer dump-autoload"
+            "@composer dump-autoload"
         ]
     },
     "support": {

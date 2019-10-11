@@ -1,5 +1,4 @@
 <?php
-namespace CodeIgniter\HTTP;
 
 /**
  * CodeIgniter
@@ -33,9 +32,11 @@ namespace CodeIgniter\HTTP;
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
+
+namespace CodeIgniter\HTTP;
 
 /**
  * Class ContentSecurityPolicy
@@ -55,14 +56,14 @@ class ContentSecurityPolicy
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $baseURI = [];
 
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $childSrc = [];
 
@@ -76,56 +77,56 @@ class ContentSecurityPolicy
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $defaultSrc = [];
 
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $fontSrc = [];
 
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $formAction = [];
 
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var type
+	 * @var array|string
 	 */
 	protected $frameAncestors = [];
 
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $imageSrc = [];
 
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $mediaSrc = [];
 
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $objectSrc = [];
 
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $pluginTypes = [];
 
@@ -139,28 +140,28 @@ class ContentSecurityPolicy
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $sandbox = [];
 
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $scriptSrc = [];
 
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $styleSrc = [];
 
 	/**
 	 * Used for security enforcement
 	 *
-	 * @var array
+	 * @var array|string
 	 */
 	protected $manifestSrc = [];
 
@@ -534,9 +535,9 @@ class ContentSecurityPolicy
 	 *
 	 * @return $this
 	 */
-	public function setReportURI($uri)
+	public function setReportURI(string $uri)
 	{
-		$this->reportURI = (string) $uri;
+		$this->reportURI = $uri;
 
 		return $this;
 	}
@@ -683,7 +684,7 @@ class ContentSecurityPolicy
 
 					$this->styleSrc[] = 'nonce-' . $nonce;
 
-					return "nonce={$nonce}";
+					return "nonce=\"{$nonce}\"";
 				}, $body
 		);
 
@@ -694,7 +695,7 @@ class ContentSecurityPolicy
 
 					$this->scriptSrc[] = 'nonce-' . $nonce;
 
-					return "nonce={$nonce}";
+					return "nonce=\"{$nonce}\"";
 				}, $body
 		);
 
@@ -799,12 +800,6 @@ class ContentSecurityPolicy
 	 */
 	protected function addToHeader(string $name, $values = null)
 	{
-		if (empty($values))
-		{
-			$this->tempHeaders[$name] = null;
-			return;
-		}
-
 		if (is_string($values))
 		{
 			$values = [$values => 0];

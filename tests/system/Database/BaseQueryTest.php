@@ -8,7 +8,7 @@ class QueryTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 
@@ -39,6 +39,32 @@ class QueryTest extends \CIUnitTestCase
 		$query->setDuration($start, $start + 5);
 
 		$this->assertEquals(5, $query->getDuration());
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testGetStartTime()
+	{
+		$query = new Query($this->db);
+
+		$start = round(microtime(true));
+
+		$query->setDuration($start, $start + 5);
+
+		$this->assertEquals($start, $query->getStartTime(true));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testGetStartTimeNumberFormat()
+	{
+		$query = new Query($this->db);
+
+		$start = microtime(true);
+
+		$query->setDuration($start, $start + 5);
+
+		$this->assertEquals(number_format($start, 6), $query->getStartTime());
 	}
 
 	//--------------------------------------------------------------------
@@ -253,4 +279,41 @@ class QueryTest extends \CIUnitTestCase
 	}
 
 	//--------------------------------------------------------------------
+
+	/**
+	 * @see https://github.com/codeigniter4/CodeIgniter4/issues/1705
+	 */
+	public function testSetQueryBindsWithSetEscapeTrue()
+	{
+		$query = new Query($this->db);
+
+		$query->setQuery('UPDATE user_table SET `x` = NOW() WHERE `id` = :id:', ['id' => 22], true);
+
+		$expected = 'UPDATE user_table SET `x` = NOW() WHERE `id` = 22';
+
+		$this->assertEquals($expected, $query->getQuery());
+	}
+
+	/**
+	 * @see https://github.com/codeigniter4/CodeIgniter4/issues/1705
+	 */
+	public function testSetQueryBindsWithSetEscapeFalse()
+	{
+		$query = new Query($this->db);
+
+		// The only time setQuery is called with setEscape = false
+		// is when the query builder has already stored the escaping info...
+		$binds = [
+			'id' => [
+				22,
+				1,
+			],
+		];
+
+		$query->setQuery('UPDATE user_table SET `x` = NOW() WHERE `id` = :id:', $binds, false);
+
+		$expected = 'UPDATE user_table SET `x` = NOW() WHERE `id` = 22';
+
+		$this->assertEquals($expected, $query->getQuery());
+	}
 }

@@ -9,7 +9,7 @@ class ServicesTest extends \CIUnitTestCase
 	protected $config;
 	protected $original;
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 
@@ -20,7 +20,7 @@ class ServicesTest extends \CIUnitTestCase
 		//      $this->config->supportedLocales = ['en', 'es'];
 	}
 
-	public function tearDown()
+	public function tearDown(): void
 	{
 		$_SERVER = $this->original;
 	}
@@ -106,26 +106,6 @@ class ServicesTest extends \CIUnitTestCase
 	{
 		$actual = Services::clirequest(null, false);
 		$this->assertInstanceOf(\CodeIgniter\HTTP\CLIRequest::class, $actual);
-	}
-
-	public function testNewEmail()
-	{
-		$actual = Services::email();
-		$this->assertInstanceOf(\CodeIgniter\Email\Email::class, $actual);
-
-		$actual->fromName = 'Zoboomafoo';
-		$this->assertEquals('Zoboomafoo', Services::email()->fromName);
-		$this->assertEquals('Zoboomafoo', Services::email(new \Config\Email())->fromName);
-	}
-
-	public function testNewUnsharedEmail()
-	{
-		$actual = Services::email(null, false);
-		$this->assertInstanceOf(\CodeIgniter\Email\Email::class, $actual);
-
-		$actual->fromName = 'Zoboomafoo';
-		$this->assertEquals('', Services::email(null, false)->fromName);
-		$this->assertEquals('', Services::email(new \Config\Email(), false)->fromName);
 	}
 
 	public function testNewLanguage()

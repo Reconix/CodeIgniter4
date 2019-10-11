@@ -1,17 +1,18 @@
-<?php namespace CodeIgniter\Config;
+<?php
+namespace CodeIgniter\Config;
 
-use Config\Email;
+use Config\DocTypes;
 
 class ConfigTest extends \CIUnitTestCase
 {
 
 	public function testCreateSingleInstance()
 	{
-		$Config          = Config::get('Email', false);
-		$NamespaceConfig = Config::get('Config\\Email', false);
+		$Config          = Config::get('DocTypes', false);
+		$NamespaceConfig = Config::get('Config\\DocTypes', false);
 
-		$this->assertInstanceOf(Email::class, $Config);
-		$this->assertInstanceOf(Email::class, $NamespaceConfig);
+		$this->assertInstanceOf(DocTypes::class, $Config);
+		$this->assertInstanceOf(DocTypes::class, $NamespaceConfig);
 	}
 
 	public function testCreateInvalidInstance()
@@ -23,8 +24,8 @@ class ConfigTest extends \CIUnitTestCase
 
 	public function testCreateSharedInstance()
 	{
-		$Config  = Config::get('Email' );
-		$Config2 = Config::get('Config\\Email');
+		$Config  = Config::get('DocTypes');
+		$Config2 = Config::get('Config\\DocTypes');
 
 		$this->assertTrue($Config === $Config2);
 	}
@@ -35,4 +36,16 @@ class ConfigTest extends \CIUnitTestCase
 
 		$this->assertNull($Config);
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState  disabled
+	 */
+	public function testInjection()
+	{
+		Config::reset();
+		Config::injectMock('Banana', '\stdClass');
+		$this->assertNotNull(Config::get('Banana'));
+	}
+
 }

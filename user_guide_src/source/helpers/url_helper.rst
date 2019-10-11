@@ -23,16 +23,16 @@ The following functions are available:
 
 .. php:function:: site_url([$uri = ''[, $protocol = NULL[, $altConfig = NULL]]])
 
-	:param	string	$uri: URI string
+	:param	mixed	$uri: URI string or array of URI segments
 	:param	string	$protocol: Protocol, e.g. 'http' or 'https'
 	:param	\\Config\\App	$altConfig: Alternate configuration to use
 	:returns:	Site URL
 	:rtype:	string
 
 	Returns your site URL, as specified in your config file. The index.php
-	file (or whatever you have set as your site **index_page** in your config
+	file (or whatever you have set as your site **indexPage** in your config
 	file) will be added to the URL, as will any URI segments you pass to the
-	function, plus the **url_suffix** as set in your config file.
+	function.
 
 	You are encouraged to use this function any time you need to generate a
 	local URL so that your pages become more portable in the event your URL
@@ -57,7 +57,7 @@ The following functions are available:
 
 .. php:function:: base_url([$uri = ''[, $protocol = NULL]])
 
-	:param	string	$uri: URI string
+	:param	mixed	$uri: URI string or array of URI segments
 	:param	string	$protocol: Protocol, e.g. 'http' or 'https'
 	:returns:	Base URL
 	:rtype:	string
@@ -67,7 +67,7 @@ The following functions are available:
 		echo base_url();
 
 	This function returns the same thing as :php:func:`site_url()`, without
-	the *index_page* or *url_suffix* being appended.
+	the *indexPage* being appended.
 
 	Also like :php:func:`site_url()`, you can supply segments as a string or
 	an array. Here is a string example::
@@ -130,7 +130,7 @@ The following functions are available:
 	:returns:	'index_page' value
 	:rtype:	mixed
 
-	Returns your site **index_page**, as specified in your config file.
+	Returns your site **indexPage**, as specified in your config file.
 	Example::
 
 		echo index_page();
@@ -282,7 +282,7 @@ The following functions are available:
 		$string = auto_link($string);
 
 	The second parameter determines whether URLs and e-mails are converted or
-	just one or the other. Default behavior is both if the parameter is not
+	just one or the other. The default behavior is both if the parameter is not
 	specified. E-mail links are encoded as :php:func:`safe_mailto()` as shown
 	above.
 

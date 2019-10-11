@@ -1,4 +1,4 @@
-<?php namespace CodeIgniter\Validation;
+<?php
 
 /**
  * CodeIgniter
@@ -32,13 +32,18 @@
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
+
+namespace CodeIgniter\Validation;
 
 use CodeIgniter\HTTP\RequestInterface;
 use Config\Services;
 
+/**
+ * File validation rules
+ */
 class FileRules
 {
 
@@ -51,6 +56,11 @@ class FileRules
 
 	//--------------------------------------------------------------------
 
+	/**
+	 * Constructor.
+	 *
+	 * @param RequestInterface $request
+	 */
 	public function __construct(RequestInterface $request = null)
 	{
 		if (is_null($request))
@@ -110,13 +120,25 @@ class FileRules
 		$params = explode(',', $params);
 		$name   = array_shift($params);
 
-		$file = $this->request->getFile($name);
-
-		if (is_null($file))
+		if(!($files = $this->request->getFileMultiple($name)))
 		{
-			return false;
+			$files = [$this->request->getFile($name)];
 		}
-		return $params[0] >= $file->getSize() / 1024;
+
+		foreach ($files as $file)
+		{
+			if (is_null($file))
+			{
+				return false;
+			}
+
+			if ($file->getSize() / 1024 > $params[0])
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	//--------------------------------------------------------------------
@@ -138,18 +160,29 @@ class FileRules
 		$params = explode(',', $params);
 		$name   = array_shift($params);
 
-		$file = $this->request->getFile($name);
-
-		if (is_null($file))
+		if(!($files = $this->request->getFileMultiple($name)))
 		{
-			return false;
+			$files = [$this->request->getFile($name)];
 		}
 
-		// We know that our mimes list always has the first mime
-		// start with `image` even when then are multiple accepted types.
-		$type = \Config\Mimes::guessTypeFromExtension($file->getExtension());
+		foreach ($files as $file)
+		{
+			if (is_null($file))
+			{
+				return false;
+			}
 
-		return mb_strpos($type, 'image') === 0;
+			// We know that our mimes list always has the first mime
+			// start with `image` even when then are multiple accepted types.
+			$type = \Config\Mimes::guessTypeFromExtension($file->getExtension());
+
+			if (mb_strpos($type, 'image') !== 0)
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	//--------------------------------------------------------------------
@@ -170,14 +203,25 @@ class FileRules
 		$params = explode(',', $params);
 		$name   = array_shift($params);
 
-		$file = $this->request->getFile($name);
-
-		if (is_null($file))
+		if(!($files = $this->request->getFileMultiple($name)))
 		{
-			return false;
+			$files = [$this->request->getFile($name)];
 		}
 
-		return in_array($file->getMimeType(), $params);
+		foreach ($files as $file)
+		{
+			if (is_null($file))
+			{
+				return false;
+			}
+
+			if (!in_array($file->getMimeType(), $params))
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	//--------------------------------------------------------------------
@@ -198,14 +242,25 @@ class FileRules
 		$params = explode(',', $params);
 		$name   = array_shift($params);
 
-		$file = $this->request->getFile($name);
-
-		if (is_null($file))
+		if(!($files = $this->request->getFileMultiple($name)))
 		{
-			return false;
+			$files = [$this->request->getFile($name)];
 		}
 
-		return in_array($file->getExtension(), $params);
+		foreach ($files as $file)
+		{
+			if (is_null($file))
+			{
+				return false;
+			}
+
+			if (!in_array($file->getExtension(), $params))
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	//--------------------------------------------------------------------
@@ -227,23 +282,34 @@ class FileRules
 		$params = explode(',', $params);
 		$name   = array_shift($params);
 
-		$file = $this->request->getFile($name);
-
-		if (is_null($file))
+		if(!($files = $this->request->getFileMultiple($name)))
 		{
-			return false;
+			$files = [$this->request->getFile($name)];
 		}
 
-		// Get Parameter sizes
-		$allowedWidth  = $params[0] ?? 0;
-		$allowedHeight = $params[1] ?? 0;
+		foreach ($files as $file)
+		{
+			if (is_null($file))
+			{
+				return false;
+			}
 
-		// Get uploaded image size
-		$info       = getimagesize($file->getTempName());
-		$fileWidth  = $info[0];
-		$fileHeight = $info[1];
+			// Get Parameter sizes
+			$allowedWidth  = $params[0] ?? 0;
+			$allowedHeight = $params[1] ?? 0;
 
-		return $fileWidth <= $allowedWidth && $fileHeight <= $allowedHeight;
+			// Get uploaded image size
+			$info       = getimagesize($file->getTempName());
+			$fileWidth  = $info[0];
+			$fileHeight = $info[1];
+
+			if ( $fileWidth > $allowedWidth || $fileHeight > $allowedHeight)
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	//--------------------------------------------------------------------

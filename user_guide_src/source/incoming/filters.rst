@@ -56,7 +56,7 @@ to make changes that will still be present when the controller executes.
 
 Since before filters are executed prior to your controller being executed, you may at times want to stop the
 actions in the controller from happening. You can do this by passing back anything that is not the request object.
-This is typically used to peform redirects, like in this example::
+This is typically used to perform redirects, like in this example::
 
     public function before(RequestInterface $request)
     {
@@ -80,9 +80,9 @@ and you cannot stop script execution. This does allow you to modify the final ou
 the final output. This could be used to ensure certain security headers were set the correct way, or to cache
 the final output, or even to filter the final output with a bad words filter.
 
-===================
+*******************
 Configuring Filters
-===================
+*******************
 
 Once you've created your filters, you need to configure when they get run. This is done in ``app/Config/Filters.php``.
 This file contains four properties that allow you to configure exactly when the filters run.
@@ -94,7 +94,7 @@ The ``$aliases`` array is used to associate a simple name with one or more fully
 filters to run::
 
     public $aliases = [
-        'csrf' => \App\Filters\CSRF::class
+        'csrf' => \CodeIgniter\Filters\CSRF::class
     ];
 
 Aliases are mandatory and if you try to use a full class name later, the system will throw an error. Defining them
@@ -169,7 +169,7 @@ would apply to every AJAX request.
 $filters
 ========
 
-This property is an array of filter aliases. For each alias you can specify before and after arrays that contain
+This property is an array of filter aliases. For each alias, you can specify before and after arrays that contain
 a list of URI patterns that filter should apply to::
 
     public filters = [
@@ -181,4 +181,4 @@ a list of URI patterns that filter should apply to::
 Provided Filters
 ****************
 
-Three filters are bundled with CodeIgniter4: Honeypot, Security, and Throttler.
+Three filters are bundled with CodeIgniter4: Honeypot, Security, and DebugToolbar.

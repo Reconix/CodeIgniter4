@@ -1,5 +1,6 @@
 <?php namespace CodeIgniter\CLI;
 
+use CodeIgniter\HTTP\CLIRequest;
 use Tests\Support\MockCodeIgniter;
 use Tests\Support\Config\MockCLIConfig;
 use CodeIgniter\Test\Filters\CITestStreamFilter;
@@ -9,7 +10,7 @@ class ConsoleTest extends \CIUnitTestCase
 
 	private $stream_filter;
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 
@@ -35,7 +36,7 @@ class ConsoleTest extends \CIUnitTestCase
 		$this->app = new MockCodeIgniter(new MockCLIConfig());
 	}
 
-	public function tearDown()
+	public function tearDown(): void
 	{
 		stream_filter_remove($this->stream_filter);
 	}
@@ -56,6 +57,9 @@ class ConsoleTest extends \CIUnitTestCase
 
 	public function testRun()
 	{
+		$request = new CLIRequest(config('App'));
+		$this->app->setRequest($request);
+
 		$console = new \CodeIgniter\CLI\Console($this->app);
 		$console->run(true);
 		$result = CITestStreamFilter::$buffer;

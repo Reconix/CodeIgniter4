@@ -1,4 +1,5 @@
-<?php namespace CodeIgniter\Log\Handlers;
+<?php
+namespace CodeIgniter\Log\Handlers;
 
 use Tests\Support\Config\MockLogger as LoggerConfig;
 use Tests\Support\Log\Handlers\MockFileHandler as MockFileHandler;
@@ -7,7 +8,7 @@ use org\bovigo\vfs\vfsStream;
 class FileHandlerTest extends \CIUnitTestCase
 {
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		$this->root  = vfsStream::setup('root');
 		$this->start = $this->root->url() . '/';

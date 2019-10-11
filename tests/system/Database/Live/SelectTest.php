@@ -91,7 +91,7 @@ class SelectTest extends CIDatabaseTestCase
 
 	//--------------------------------------------------------------------
 
-	public function testSelectAvgWitAlias()
+	public function testSelectAvgWithAlias()
 	{
 		$result = $this->db->table('job')->selectAvg('id', 'xam')->get()->getRow();
 
@@ -109,11 +109,29 @@ class SelectTest extends CIDatabaseTestCase
 
 	//--------------------------------------------------------------------
 
-	public function testSelectSumWitAlias()
+	public function testSelectSumWithAlias()
 	{
 		$result = $this->db->table('job')->selectSum('id', 'xam')->get()->getRow();
 
 		$this->assertEquals(10, $result->xam);
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testSelectCount()
+	{
+		$result = $this->db->table('job')->selectCount('id')->get()->getRow();
+
+		$this->assertEquals(4, $result->id);
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testSelectCountWithAlias()
+	{
+		$result = $this->db->table('job')->selectCount('id', 'xam')->get()->getRow();
+
+		$this->assertEquals(4, $result->xam);
 	}
 
 	//--------------------------------------------------------------------
@@ -135,4 +153,42 @@ class SelectTest extends CIDatabaseTestCase
 	}
 
 	//--------------------------------------------------------------------
+
+	/**
+	 * @see https://github.com/codeigniter4/CodeIgniter4/issues/1226
+	 */
+	public function testSelectWithMultipleWheresOnSameColumn()
+	{
+		$users = $this->db->table('user')
+			->where('id', 1)
+			->orWhereIn('id', [2, 3])
+			->get()
+			->getResultArray();
+
+		$this->assertCount(3, $users);
+
+		foreach ($users as $user)
+		{
+			$this->assertTrue(in_array($user['id'], [1, 2, 3]));
+		}
+	}
+
+	/**
+	 * @see https://github.com/codeigniter4/CodeIgniter4/issues/1226
+	 */
+	public function testSelectWithMultipleWheresOnSameColumnAgain()
+	{
+		$users = $this->db->table('user')
+						  ->whereIn('id', [1, 2])
+						  ->orWhere('id', 3)
+						  ->get()
+						  ->getResultArray();
+
+		$this->assertCount(3, $users);
+
+		foreach ($users as $user)
+		{
+			$this->assertTrue(in_array($user['id'], [1, 2, 3]));
+		}
+	}
 }

@@ -71,9 +71,9 @@ This is an array of servers that will be used when using the ``Memcache(d)`` han
 
 The settings for the Redis server that you wish to use when using the ``Redis`` handler.
 
-===============
+***************
 Class Reference
-===============
+***************
 
 .. php:method:: isSupported()
 
@@ -83,11 +83,11 @@ Class Reference
 .. php:method:: get($key)
 
 	:param	string	$key: Cache item name
-	:returns:	Item value or FALSE if not found
+	:returns:	Item value or NULL if not found
 	:rtype:	mixed
 
 	This method will attempt to fetch an item from the cache store. If the
-	item does not exist, the method will return FALSE.
+	item does not exist, the method will return NULL.
 
 	Example::
 
@@ -212,7 +212,7 @@ File-based Caching
 Unlike caching from the Output Class, the driver file-based caching
 allows for pieces of view files to be cached. Use this with care, and
 make sure to benchmark your application, as a point can come where disk
-I/O will negate positive gains by caching. This require a writable cache directory to be really writable (0777).
+I/O will negate positive gains by caching. This requires a writable cache directory to be really writable (0777).
 
 =================
 Memcached Caching
@@ -239,13 +239,14 @@ Redis Caching
 Redis is an in-memory key-value store which can operate in LRU cache mode.
 To use it, you need `Redis server and phpredis PHP extension <https://github.com/phpredis/phpredis>`_.
 
-Config options to connect to redis server must be stored in the application/config/redis.php file.
+Config options to connect to redis server must be stored in the app/Config/redis.php file.
 Available options are::
 
 	$config['host'] = '127.0.0.1';
 	$config['password'] = NULL;
 	$config['port'] = 6379;
 	$config['timeout'] = 0;
+	$config['database'] = 0;
 
 For more information on Redis, please see
 `http://redis.io <http://redis.io>`_.

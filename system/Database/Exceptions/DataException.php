@@ -1,4 +1,6 @@
-<?php namespace CodeIgniter\Database\Exceptions;
+<?php
+
+namespace CodeIgniter\Database\Exceptions;
 
 class DataException extends \RuntimeException implements ExceptionInterface
 {
@@ -44,5 +46,20 @@ class DataException extends \RuntimeException implements ExceptionInterface
 	public static function forInvalidAllowedFields(string $model)
 	{
 		return new static(lang('Database.invalidAllowedFields', [$model]));
+	}
+
+	public static function forTableNotFound(string $table)
+	{
+		return new static(lang('Database.tableNotFound', [$table]));
+	}
+
+	public static function forEmptyInputGiven(string $argument)
+	{
+		return new static(lang('Database.forEmptyInputGiven', [$argument]));
+	}
+
+	public static function forFindColumnHaveMultipleColumns()
+	{
+		return new static(lang('Database.forFindColumnHaveMultipleColumns'));
 	}
 }

@@ -1,4 +1,4 @@
-<?php namespace CodeIgniter\Database\MySQLi;
+<?php
 
 /**
  * CodeIgniter
@@ -32,9 +32,11 @@
  * @copyright  2014-2019 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
- * @since      Version 3.0.0
+ * @since      Version 4.0.0
  * @filesource
  */
+
+namespace CodeIgniter\Database\MySQLi;
 
 use CodeIgniter\Database\BaseBuilder;
 
@@ -50,5 +52,25 @@ class Builder extends BaseBuilder
 	 * @var string
 	 */
 	protected $escapeChar = '`';
+
+	/**
+	 * FROM tables
+	 *
+	 * Groups tables in FROM clauses if needed, so there is no confusion
+	 * about operator precedence.
+	 *
+	 * Note: This is only used (and overridden) by MySQL.
+	 *
+	 * @return string
+	 */
+	protected function _fromTables(): string
+	{
+		if ( ! empty($this->QBJoin) && count($this->QBFrom) > 1)
+		{
+			return '('.implode(', ', $this->QBFrom).')';
+		}
+
+		return implode(', ', $this->QBFrom);
+	}
 
 }

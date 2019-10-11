@@ -8,7 +8,7 @@ use IntlDateFormatter;
 class TimeTest extends \CIUnitTestCase
 {
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 
@@ -167,7 +167,7 @@ class TimeTest extends \CIUnitTestCase
 	{
 		$time = Time::createFromTime(10, 03, 05, 'Europe/London');
 
-		$this->assertEquals(date('Y-m-d 10:03:05'), $time->toDateTimeString());
+		$this->assertCloseEnoughString(date('Y-m-d 10:03:05'), $time->toDateTimeString());
 	}
 
 	public function testCreateFromFormat()
@@ -177,7 +177,7 @@ class TimeTest extends \CIUnitTestCase
 		Time::setTestNow($now);
 		$time = Time::createFromFormat('F j, Y', 'January 15, 2017', 'America/Chicago');
 
-		$this->assertEquals(date('2017-01-15 H:i:s', $now->getTimestamp()), $time->toDateTimeString());
+		$this->assertCloseEnoughString(date('2017-01-15 H:i:s', $now->getTimestamp()), $time->toDateTimeString());
 		Time::setTestNow();
 	}
 
@@ -217,6 +217,22 @@ class TimeTest extends \CIUnitTestCase
 
 		Time::setTestNow();
 		$this->assertCloseEnoughString(date('Y-m-d H:i:s', time()), Time::now()->toDateTimeString());
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testMagicIssetTrue()
+	{
+		$time = Time::parse('January 1, 2016');
+
+		$this->assertTrue(isset($time->year));
+	}
+
+	public function testMagicIssetFalse()
+	{
+		$time = Time::parse('January 1, 2016');
+
+		$this->assertFalse(isset($time->foobar));
 	}
 
 	//--------------------------------------------------------------------

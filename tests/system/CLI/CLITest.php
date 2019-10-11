@@ -7,7 +7,7 @@ class CLITest extends \CIUnitTestCase
 
 	private $stream_filter;
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		parent::setUp();
 
@@ -15,7 +15,7 @@ class CLITest extends \CIUnitTestCase
 		$this->stream_filter        = stream_filter_append(STDOUT, 'CITestStreamFilter');
 	}
 
-	public function tearDown()
+	public function tearDown(): void
 	{
 		stream_filter_remove($this->stream_filter);
 	}
@@ -99,10 +99,35 @@ class CLITest extends \CIUnitTestCase
 		$this->assertEquals("\033[1;37m\033[42m\033[4mtest\033[0m", CLI::color('test', 'white', 'green', 'underline'));
 	}
 
+	public function testPrint()
+	{
+		CLI::print('test');
+		$expected = 'test';
+
+		$this->assertEquals($expected, CITestStreamFilter::$buffer);
+	}
+
+	public function testPrintForeground()
+	{
+		CLI::print('test', 'red');
+		$expected = "\033[0;31mtest\033[0m";
+
+		$this->assertEquals($expected, CITestStreamFilter::$buffer);
+	}
+
+	public function testPrintBackground()
+	{
+		CLI::print('test', 'red', 'green');
+		$expected = "\033[0;31m\033[42mtest\033[0m";
+
+		$this->assertEquals($expected, CITestStreamFilter::$buffer);
+	}
+
 	public function testWrite()
 	{
 		CLI::write('test');
 		$expected = <<<EOT
+
 test
 
 EOT;
