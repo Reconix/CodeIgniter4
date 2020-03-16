@@ -7,7 +7,7 @@ use Config\App;
 use CodeIgniter\Services;
 use Config\Filters;
 
-class FormHelperTest extends \CIUnitTestCase
+class FormHelperTest extends \CodeIgniter\Test\CIUnitTestCase
 {
 
 	protected function setUp(): void
@@ -173,41 +173,6 @@ EOH;
 		$this->assertEquals($expected, form_open('foo/bar', $attributes, $hidden));
 	}
 
-	// ------------------------------------------------------------------------
-	//FIXME This needs dynamic filters to complete
-	//  public function testFormOpenWithCSRF()
-	//  {
-	//      $config = new App();
-	//      $config->baseURL = '';
-	//      $config->indexPage = 'index.php';
-	//      $request = Services::request($config);
-	//      $request->uri = new URI('http://example.com/');
-	//
-	//      Services::injectMock('request', $request);
-	//
-	//      $filters = Services::filters();
-	//      $filters->globals['before'][] = 'csrf'; // force CSRF
-	//      $before = $filters->globals['before'];
-	//
-	//      $Value = csrf_hash();
-	//      $Name = csrf_token();
-	//      $expected = <<<EOH
-	//<form action="http://example.com/index.php/foo/bar" name="form" id="form" method="POST" accept-charset="utf-8">
-	//<input type="hidden" name="foo" value="bar" style="display: none;" />
-	//<input type="hidden" name="$Name" value="$Value" style="display: none;" />
-	//
-	//EOH;
-	//
-	//      $attributes = [
-	//          'name' => 'form',
-	//          'id' => 'form',
-	//          'method' => 'POST'
-	//      ];
-	//      $hidden = [
-	//          'foo' => 'bar'
-	//      ];
-	//      $this->assertEquals($expected, form_open('foo/bar', $attributes, $hidden));
-	//  }
 	// ------------------------------------------------------------------------
 	public function testFormOpenMultipart()
 	{

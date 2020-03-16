@@ -8,7 +8,7 @@
  * This content is released under the MIT License (MIT)
  *
  * Copyright (c) 2014-2019 British Columbia Institute of Technology
- * Copyright (c) 2019 CodeIgniter Foundation
+ * Copyright (c) 2019-2020 CodeIgniter Foundation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@
  *
  * @package    CodeIgniter
  * @author     CodeIgniter Dev Team
- * @copyright  2019 CodeIgniter Foundation
+ * @copyright  2019-2020 CodeIgniter Foundation
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
  * @since      Version 4.0.0
@@ -320,7 +320,7 @@ class Parser extends View
 	 */
 	protected function parseSingle(string $key, string $val): array
 	{
-		$pattern = '#' . $this->leftDelimiter . '!?\s*' . preg_quote($key) . '\s*\|*\s*([|a-zA-Z0-9<>=\(\),:_\-\s\+]+)*\s*!?' . $this->rightDelimiter . '#ms';
+		$pattern = '#' . $this->leftDelimiter . '!?\s*' . preg_quote($key) . '\s*\|*\s*([|\w<>=\(\),:.\-\s\+\\\\/]+)*\s*!?' . $this->rightDelimiter . '#ms';
 
 		return [$pattern => $val];
 	}
@@ -402,7 +402,7 @@ class Parser extends View
 						$val = 'Resource';
 					}
 
-					$temp['#' . $this->leftDelimiter . '!?\s*' . preg_quote($key) . '\s*\|*\s*([|\w<>=\(\),:_\-\s\+]+)*\s*!?' . $this->rightDelimiter . '#s'] = $val;
+					$temp['#' . $this->leftDelimiter . '!?\s*' . preg_quote($key) . '\s*\|*\s*([|\w<>=\(\),:.\-\s\+\\\\/]+)*\s*!?' . $this->rightDelimiter . '#s'] = $val;
 				}
 
 				// Now replace our placeholders with the new content.
@@ -414,7 +414,10 @@ class Parser extends View
 				$str .= $out;
 			}
 
-			$replace['#' . $match[0] . '#s'] = $str;
+			//Escape | character from filters as it's handled as OR in regex
+			$escaped_match = preg_replace('/(?<!\\\\)\\|/', '\\|', $match[0]);
+
+			$replace['#' . $escaped_match . '#s'] = $str;
 		}
 
 		return $replace;
@@ -683,7 +686,7 @@ class Parser extends View
 		foreach ($filters as $filter)
 		{
 			// Grab any parameter we might need to send
-			preg_match('/\([a-zA-Z0-9\-:_ +,<>=]+\)/', $filter, $param);
+			preg_match('/\([\w<>=\/\\\,:.\-\s\+]+\)/', $filter, $param);
 
 			// Remove the () and spaces to we have just the parameter left
 			$param = ! empty($param) ? trim($param[0], '() ') : null;
@@ -766,7 +769,7 @@ class Parser extends View
 				foreach ($matchesParams[0] as $item)
 				{
 					$keyVal = explode('=', $item);
-					if (count($keyVal) == 2)
+					if (count($keyVal) === 2)
 					{
 						$params[$keyVal[0]] = str_replace('"', '', $keyVal[1]);
 					}

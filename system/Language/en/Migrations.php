@@ -5,7 +5,7 @@
  *
  * @package    CodeIgniter
  * @author     CodeIgniter Dev Team
- * @copyright  2019 CodeIgniter Foundation
+ * @copyright  2019-2020 CodeIgniter Foundation
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
  * @since      Version 4.0.0
@@ -37,6 +37,8 @@ return [
    'badCreateName'     => 'You must provide a migration file name.',
    'writeError'        => 'Error trying to create file.',
    'migNumberError'    => 'Migration number must be three digits, and there must not be any gaps in the sequence.',
+   'rollBackConfirm'   => 'Are you sure you want to rollback?',
+   'refreshConfirm'    => 'Are you sure you want to refresh?',
 
    'latest'            => 'Running all new migrations...',
    'generalFault'      => 'Migration failed!',

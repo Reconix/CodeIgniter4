@@ -2,7 +2,7 @@
 
 use CodeIgniter\View\Parser;
 
-class ParserFilterTest extends \CIUnitTestCase
+class ParserFilterTest extends \CodeIgniter\Test\CIUnitTestCase
 {
 	protected $loader;
 	protected $viewsDir;
@@ -58,17 +58,22 @@ class ParserFilterTest extends \CIUnitTestCase
 	{
 		$parser = new Parser($this->config, $this->viewsDir, $this->loader);
 
-		$today = date('Y-m-d');
+		$today_dash = date('Y-m-d');
+		$today_dot = date('Y.m.d');
+		$today_space = date('Y m d');
+		$today_colon = date('Y:m:d');
+		$today_slash = date('Y/m/d');
+		$today_backslash = date('Y\\\m\\\d');
 
 		$data = [
 			'value1' => time(),
 			'value2' => date('Y-m-d H:i:s'),
 		];
 
-		$template = '{ value1|date(Y-m-d) } { value2|date(Y-m-d) }';
+		$template = '{ value1|date(Y-m-d) } { value2|date(Y-m-d) } { value1|date(Y.m.d) } { value1|date(Y m d) } { value1|date(Y:m:d) } { value1|date(Y/m/d) } { value1|date(Y\\\m\\\d) }';
 
 		$parser->setData($data);
-		$this->assertEquals("{$today} {$today}", $parser->renderString($template));
+		$this->assertEquals("{$today_dash} {$today_dash} {$today_dot} {$today_space} {$today_colon} {$today_slash} {$today_backslash}", $parser->renderString($template));
 	}
 
 	//--------------------------------------------------------------------
@@ -403,10 +408,65 @@ EOF;
 			'mynum' => 1234567.891234567890000,
 		];
 
-		$template = '{ mynum|local_currency(EUR,de_DE) }';
+		$template = '{ mynum|local_currency(EUR,de_DE,2) }';
 
 		$parser->setData($data);
 		$this->assertEquals('1.234.567,89 €', $parser->renderString($template));
 	}
 
+	public function testParsePairWithAbs()
+	{
+		$parser = new Parser($this->config, $this->viewsDir, $this->loader);
+
+		$data = [
+			'value1' => -1,
+			'value2' => 1,
+			'single' => [
+				[
+					'svalue1' => -2,
+					'svalue2' => 2,
+				],
+			],
+			'loop'   => [
+				[
+					'lvalue' => -3,
+				],
+				[
+					'lvalue' => 3,
+				],
+			],
+			'nested' => [
+				[
+					'nvalue1' => -4,
+					'nvalue2' => 4,
+					'nsingle' => [
+						[
+							'nsvalue1' => -5,
+							'nsvalue2' => 5,
+						],
+					],
+					'nsloop'  => [
+						[
+							'nlvalue' => -6,
+						],
+						[
+							'nlvalue' => 6,
+						],
+					],
+				],
+			],
+		];
+
+		$template = '{ value1|abs }{ value2|abs }'
+			. '{single}{ svalue1|abs }{ svalue2|abs }{/single}'
+			. '{loop}{ lvalue|abs }{/loop}'
+			. '{nested}'
+			. '{ nvalue1|abs }{ nvalue2|abs }'
+			. '{nsingle}{ nsvalue1|abs }{ nsvalue2|abs }{/nsingle}'
+			. '{nsloop}{ nlvalue|abs }{/nsloop}'
+			. '{/nested}';
+
+		$parser->setData($data);
+		$this->assertEquals('112233445566', $parser->renderString($template));
+	}
 }

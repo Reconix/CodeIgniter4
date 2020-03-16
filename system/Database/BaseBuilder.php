@@ -8,7 +8,7 @@
  * This content is released under the MIT License (MIT)
  *
  * Copyright (c) 2014-2019 British Columbia Institute of Technology
- * Copyright (c) 2019 CodeIgniter Foundation
+ * Copyright (c) 2019-2020 CodeIgniter Foundation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@
  *
  * @package    CodeIgniter
  * @author     CodeIgniter Dev Team
- * @copyright  2019 CodeIgniter Foundation
+ * @copyright  2019-2020 CodeIgniter Foundation
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
  * @since      Version 4.0.0
@@ -212,6 +212,14 @@ class BaseBuilder
 	 * @var array
 	 */
 	protected $binds = [];
+
+	/**
+	 * Collects the key count for named parameters
+	 * in the Query object.
+	 *
+	 * @var array
+	 */
+	protected $bindsKeyCount = [];
 
 	/**
 	 * Some databases, like SQLite, do not by default
@@ -979,13 +987,29 @@ class BaseBuilder
 	 * @param string        $type
 	 * @param boolean       $escape
 	 * @param string        $clause (Internal use only)
+	 * @throws InvalidArgumentException
 	 *
 	 * @return BaseBuilder
 	 */
 	protected function _whereIn(string $key = null, $values = null, bool $not = false, string $type = 'AND ', bool $escape = null, string $clause = 'QBWhere')
 	{
-		if ($key === null || $values === null || (! is_array($values) && ! ($values instanceof Closure)))
+		if (empty($key) || ! is_string($key))
 		{
+			if (CI_DEBUG)
+			{
+				throw new InvalidArgumentException(sprintf('%s() expects $key to be a non-empty string', debug_backtrace(0, 2)[1]['function']));
+			} 
+			
+			return $this;
+		}
+
+		if ($values === null || (! is_array($values) && ! ($values instanceof Closure)))
+		{
+			if (CI_DEBUG)
+			{
+				throw new InvalidArgumentException(sprintf('%s() expects $values to be of type array or closure', debug_backtrace(0, 2)[1]['function']));
+			}
+			
 			return $this;
 		}
 
@@ -3045,6 +3069,17 @@ class BaseBuilder
 
 					if (! empty($matches[4]))
 					{
+						$protectIdentifiers = false;
+						if (strpos($matches[4], '.') !== false)
+						{
+							$protectIdentifiers = true;
+						}
+
+						if (strpos($matches[4], ':') === false)
+						{
+							$matches[4] = $this->db->protectIdentifiers(trim($matches[4]), false, $protectIdentifiers);
+						}
+
 						$matches[4] = ' ' . $matches[4];
 					}
 
@@ -3391,12 +3426,11 @@ class BaseBuilder
 			return $key;
 		}
 
-		$count = 0;
-
-		while (array_key_exists($key . $count, $this->binds))
+		if (!array_key_exists($key, $this->bindsKeyCount))
 		{
-			++$count;
+			$this->bindsKeyCount[$key] = 0;
 		}
+		$count = $this->bindsKeyCount[$key]++;
 
 		$this->binds[$key . $count] = [
 			$value,

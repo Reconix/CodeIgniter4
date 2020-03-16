@@ -7,7 +7,7 @@ use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\URI;
 use CodeIgniter\HTTP\UserAgent;
 
-class ValidationTest extends \CIUnitTestCase
+class ValidationTest extends \CodeIgniter\Test\CIUnitTestCase
 {
 
 	/**
@@ -24,6 +24,22 @@ class ValidationTest extends \CIUnitTestCase
 		],
 		'groupA'        => [
 			'foo' => 'required|min_length[5]',
+		],
+		'login'         => [
+			'username' => [
+				'label'  => 'Username',
+				'rules'  => 'required',
+				'errors' => [
+					'required' => 'custom username required error msg.',
+				],
+			],
+			'password' => [
+				'label'  => 'Password',
+				'rules'  => 'required',
+				'errors' => [
+					'required' => 'custom password required error msg.',
+				],
+			],
 		],
 		'groupA_errors' => [
 			'foo' => [
@@ -272,6 +288,20 @@ class ValidationTest extends \CIUnitTestCase
 		$this->expectException(ValidationException::class);
 
 		$this->validation->setRuleGroup('groupZ');
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testSetRuleGroupWithCustomErrorMessage()
+	{
+		$this->validation->reset()->setRuleGroup('login');
+		$this->validation->run([
+			'username' => 'codeigniter',
+		]);
+
+		$this->assertEquals([
+			'password' => 'custom password required error msg.',
+		], $this->validation->getErrors());
 	}
 
 	//--------------------------------------------------------------------
@@ -576,4 +606,42 @@ class ValidationTest extends \CIUnitTestCase
 
 		$this->assertEquals('regex_match[/^[0-9]{4}[\-\.\[\/][0-9]{2}[\-\.\[\/][0-9]{2}/]', $result[1]);
 	}
+
+	//--------------------------------------------------------------------
+
+	public function testTagReplacement()
+	{
+		// data
+		$data = [
+			'Username' => 'Pizza',
+		];
+
+		// rules
+		$this->validation->setRules([
+			'Username' => 'min_length[6]',
+		], [
+			'Username' => [
+				'min_length' => 'Supplied value ({value}) for {field} must have at least {param} characters.',
+			],
+		]);
+
+		// run validation
+		$this->validation->run($data);
+
+		// $errors should contain an associative array
+		$errors = $this->validation->getErrors();
+
+		// if "Username" doesn't exist in errors
+		if (! isset($errors['Username']))
+		{
+			$this->fail('Unable to find "Username"');
+		}
+
+		// expected error message
+		$expected = 'Supplied value (Pizza) for Username must have at least 6 characters.';
+
+		// check if they are the same!
+		$this->assertEquals($expected, $errors['Username']);
+	}
+
 }

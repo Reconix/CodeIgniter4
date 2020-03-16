@@ -2,10 +2,10 @@
 namespace CodeIgniter\Language;
 
 use Config\Services;
-use Tests\Support\Language\MockLanguage;
+use CodeIgniter\Test\Mock\MockLanguage;
 use Tests\Support\Language\SecondMockLanguage;
 
-class LanguageTest extends \CIUnitTestCase
+class LanguageTest extends \CodeIgniter\Test\CIUnitTestCase
 {
 
 	public function testReturnsStringWithNoFileInMessage()
@@ -221,7 +221,7 @@ class LanguageTest extends \CIUnitTestCase
 		$language = Services::language('en', false);
 		// this should load the replacement bundle of messages
 		$message = lang('Core.missingExtension', [], 'en');
-		$this->assertEquals('{0} extension could not be found.', $message);
+		$this->assertEquals('{0} extension is not loaded.', $message);
 		// and we should have our new message too
 		$this->assertEquals('billions and billions', lang('Core.bazillion', [], 'en'));
 	}

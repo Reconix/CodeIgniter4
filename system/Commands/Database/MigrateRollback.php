@@ -8,7 +8,7 @@
  * This content is released under the MIT License (MIT)
  *
  * Copyright (c) 2014-2019 British Columbia Institute of Technology
- * Copyright (c) 2019 CodeIgniter Foundation
+ * Copyright (c) 2019-2020 CodeIgniter Foundation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@
  *
  * @package    CodeIgniter
  * @author     CodeIgniter Dev Team
- * @copyright  2019 CodeIgniter Foundation
+ * @copyright  2019-2020 CodeIgniter Foundation
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
  * @since      Version 4.0.0
@@ -97,6 +97,7 @@ class MigrateRollback extends BaseCommand
 	protected $options = [
 		'-b' => 'Specify a batch to roll back to; e.g. "3" to return to batch #3 or "-2" to roll back twice',
 		'-g' => 'Set database group',
+		'-f' => 'Force command - this option allows you to bypass the confirmation question when running this command in a production environment',
 	];
 
 	/**
@@ -107,6 +108,15 @@ class MigrateRollback extends BaseCommand
 	 */
 	public function run(array $params = [])
 	{
+		if (ENVIRONMENT === 'production')
+		{
+			$force = $params['-f'] ?? CLI::getOption('f');
+			if (is_null($force) && CLI::prompt(lang('Migrations.rollBackConfirm'), ['y', 'n']) === 'n')
+			{
+				return;
+			}
+		}
+
 		$runner = Services::migrations();
 
 		$group = $params['-g'] ?? CLI::getOption('g');

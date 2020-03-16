@@ -8,7 +8,7 @@
  * This content is released under the MIT License (MIT)
  *
  * Copyright (c) 2014-2019 British Columbia Institute of Technology
- * Copyright (c) 2019 CodeIgniter Foundation
+ * Copyright (c) 2019-2020 CodeIgniter Foundation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@
  *
  * @package    CodeIgniter
  * @author     CodeIgniter Dev Team
- * @copyright  2019 CodeIgniter Foundation
+ * @copyright  2019-2020 CodeIgniter Foundation
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
  * @since      Version 4.0.0
@@ -486,6 +486,7 @@ class Model
 		$eventData = $this->trigger('afterFind', ['data' => $row]);
 
 		$this->tempReturnType = $this->returnType;
+		$this->tempUseSoftDeletes = $this->useSoftDeletes;
 
 		return $eventData['data'];
 	}
@@ -497,13 +498,13 @@ class Model
 	 * data here. This allows it to be used with any of the other
 	 * builder methods and still get validated data, like replace.
 	 *
-	 * @param mixed        $key
-	 * @param string       $value
-	 * @param boolean|null $escape
+	 * @param mixed   $key    Field name, or an array of field/value pairs
+	 * @param string  $value  Field value, if $key is a single field
+	 * @param boolean $escape Whether to escape values and identifiers
 	 *
 	 * @return $this
 	 */
-	public function set($key, string $value = '', bool $escape = null)
+	public function set($key, ?string $value = '', bool $escape = null)
 	{
 		$data = is_array($key)
 			? $key
@@ -1122,14 +1123,13 @@ class Model
 	 */
 	public function paginate(int $perPage = 20, string $group = 'default', int $page = 0)
 	{
-		// Get the necessary parts.
-		$page = $page >= 1 ? $page : (ctype_digit($_GET['page'] ?? '') && $_GET['page'] > 1 ? $_GET['page'] : 1);
+		$pager = \Config\Services::pager(null, null, false);
+		$page  = $page >= 1 ? $page : $pager->getCurrentPage($group);
 
 		$total = $this->countAllResults(false);
 
 		// Store it in the Pager library so it can be
 		// paginated in the views.
-		$pager       = \Config\Services::pager();
 		$this->pager = $pager->store($group, $page, $perPage, $total);
 
 		$offset = ($page - 1) * $perPage;
@@ -1578,7 +1578,8 @@ class Model
 		{
 			$this->builder()->where($this->table . '.' . $this->deletedField, null);
 		}
-
+		$this->tempUseSoftDeletes = $this->useSoftDeletes;
+		
 		return $this->builder()->countAllResults($reset, $test);
 	}
 
@@ -1707,6 +1708,11 @@ class Model
 		// and break intermingling of model and builder methods.
 		if ($name !== 'builder' && empty($result))
 		{
+			if (! method_exists($this->builder(), $name))
+			{
+				$className = get_class($this);
+				throw new \BadMethodCallException("Call to undefined method $className::$name");
+			}
 			return $result;
 		}
 		if ($name !== 'builder' && ! $result instanceof BaseBuilder)

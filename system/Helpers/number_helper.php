@@ -7,7 +7,7 @@
  * This content is released under the MIT License (MIT)
  *
  * Copyright (c) 2014-2019 British Columbia Institute of Technology
- * Copyright (c) 2019 CodeIgniter Foundation
+ * Copyright (c) 2019-2020 CodeIgniter Foundation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@
  * @package    CodeIgniter
  * @author     CodeIgniter Dev Team
  * @copyright  2008-2014 EllisLab, Inc. (https://ellislab.com/)
- * @copyright  2019 CodeIgniter Foundation
+ * @copyright  2019-2020 CodeIgniter Foundation
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
  * @since      Version 1.0.0
@@ -179,17 +179,19 @@ if (! function_exists('number_to_amount'))
 if (! function_exists('number_to_currency'))
 {
 	/**
-	 * @param float  $num
-	 * @param string $currency
-	 * @param string $locale
+	 * @param float   $num
+	 * @param string  $currency
+	 * @param string  $locale
+	 * @param integer $fraction
 	 *
 	 * @return string
 	 */
-	function number_to_currency(float $num, string $currency, string $locale = null): string
+	function number_to_currency(float $num, string $currency, string $locale = null, int $fraction = null): string
 	{
 		return format_number($num, 1, $locale, [
 			'type'     => NumberFormatter::CURRENCY,
 			'currency' => $currency,
+			'fraction' => $fraction,
 		]);
 	}
 }
@@ -217,19 +219,20 @@ if (! function_exists('format_number'))
 		// Type can be any of the NumberFormatter options, but provide a default.
 		$type = (int) ($options['type'] ?? NumberFormatter::DECIMAL);
 
-		// In order to specify a precision, we'll have to modify
-		// the pattern used by NumberFormatter.
-		$pattern = '#,##0.' . str_repeat('#', $precision);
-
 		$formatter = new NumberFormatter($locale, $type);
 
 		// Try to format it per the locale
 		if ($type === NumberFormatter::CURRENCY)
 		{
+			$formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, $options['fraction']);
 			$output = $formatter->formatCurrency($num, $options['currency']);
 		}
 		else
 		{
+			// In order to specify a precision, we'll have to modify
+			// the pattern used by NumberFormatter.
+			$pattern = '#,##0.' . str_repeat('#', $precision);
+
 			$formatter->setPattern($pattern);
 			$output = $formatter->format($num);
 		}

@@ -7,7 +7,7 @@
  * This content is released under the MIT License (MIT)
  *
  * Copyright (c) 2014-2019 British Columbia Institute of Technology
- * Copyright (c) 2019 CodeIgniter Foundation
+ * Copyright (c) 2019-2020 CodeIgniter Foundation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
  *
  * @package    CodeIgniter
  * @author     CodeIgniter Dev Team
- * @copyright  2019 CodeIgniter Foundation
+ * @copyright  2019-2020 CodeIgniter Foundation
  * @license    https://opensource.org/licenses/MIT	MIT License
  * @link       https://codeigniter.com
  * @since      Version 4.0.0
@@ -40,7 +40,7 @@ namespace CodeIgniter\Commands\Database;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
-use Config\Autoload;
+use Config\Services;
 use Config\Migrations;
 
 /**
@@ -124,15 +124,14 @@ class CreateMigration extends BaseCommand
 
 		if (! empty($ns))
 		{
-			// Get all namespaces from PSR4 paths.
-			$config     = new Autoload();
-			$namespaces = $config->psr4;
+			// Get all namespaces
+			$namespaces = Services::autoloader()->getNamespace();
 
 			foreach ($namespaces as $namespace => $path)
 			{
 				if ($namespace === $ns)
 				{
-					$homepath = realpath($path);
+					$homepath = realpath(reset($path));
 					break;
 				}
 			}
