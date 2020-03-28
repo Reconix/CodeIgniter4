@@ -319,7 +319,7 @@ if (! function_exists('esc'))
 	{
 		if (is_array($data))
 		{
-			foreach ($data as $key => &$value)
+			foreach ($data as &$value)
 			{
 				$value = esc($value, $context);
 			}
@@ -751,7 +751,9 @@ if (! function_exists('old'))
 		// Ensure the session is loaded
 		if (session_status() === PHP_SESSION_NONE && ENVIRONMENT !== 'testing')
 		{
+			// @codeCoverageIgnoreStart
 			session();
+			// @codeCoverageIgnoreEnd
 		}
 
 		$request = Services::request();

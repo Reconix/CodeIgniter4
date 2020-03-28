@@ -430,7 +430,7 @@ class Model
 	 * @param integer $limit
 	 * @param integer $offset
 	 *
-	 * @return array|null
+	 * @return array
 	 */
 	public function findAll(int $limit = 0, int $offset = 0)
 	{
@@ -485,7 +485,7 @@ class Model
 
 		$eventData = $this->trigger('afterFind', ['data' => $row]);
 
-		$this->tempReturnType = $this->returnType;
+		$this->tempReturnType     = $this->returnType;
 		$this->tempUseSoftDeletes = $this->useSoftDeletes;
 
 		return $eventData['data'];
@@ -691,7 +691,7 @@ class Model
 		// Validate data before saving.
 		if ($this->skipValidation === false)
 		{
-			if ($this->cleanRules(false)->validate($data) === false)
+			if ($this->cleanRules()->validate($data) === false)
 			{
 				return false;
 			}
@@ -759,7 +759,7 @@ class Model
 		{
 			foreach ($set as $row)
 			{
-				if ($this->cleanRules(false)->validate($row) === false)
+				if ($this->cleanRules()->validate($row) === false)
 				{
 					return false;
 				}
@@ -1258,13 +1258,10 @@ class Model
 		{
 			case 'int':
 				return $currentDate;
-				break;
 			case 'datetime':
 				return date('Y-m-d H:i:s', $currentDate);
-				break;
 			case 'date':
 				return date('Y-m-d', $currentDate);
-				break;
 			default:
 				throw ModelException::forNoDateFormat(get_class($this));
 		}
@@ -1579,8 +1576,8 @@ class Model
 			$this->builder()->where($this->table . '.' . $this->deletedField, null);
 		}
 		$this->tempUseSoftDeletes = $this->useSoftDeletes;
-		
-		return $this->builder()->countAllResults($reset, $test);
+
+		return $this->builder()->testMode($test)->countAllResults($reset);
 	}
 
 	/**
