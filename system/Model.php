@@ -818,6 +818,12 @@ class Model
 			$data = (array) $data;
 		}
 
+		// If it's still empty here, means $data is no change or is empty object
+		if (empty($data))
+		{
+			throw DataException::forEmptyDataset('update');
+		}
+
 		// Validate data before saving.
 		if ($this->skipValidation === false)
 		{
@@ -921,7 +927,9 @@ class Model
 				{
 					throw new DatabaseException('Deletes are not allowed unless they contain a "where" or "like" clause.');
 				}
+				// @codeCoverageIgnoreStart
 				return false;
+				// @codeCoverageIgnoreEnd
 			}
 			$set[$this->deletedField] = $this->setDate();
 
@@ -1121,7 +1129,7 @@ class Model
 	 *
 	 * @return array|null
 	 */
-	public function paginate(int $perPage = 20, string $group = 'default', int $page = 0)
+	public function paginate(int $perPage = null, string $group = 'default', int $page = 0)
 	{
 		$pager = \Config\Services::pager(null, null, false);
 		$page  = $page >= 1 ? $page : $pager->getCurrentPage($group);
@@ -1131,8 +1139,8 @@ class Model
 		// Store it in the Pager library so it can be
 		// paginated in the views.
 		$this->pager = $pager->store($group, $page, $perPage, $total);
-
-		$offset = ($page - 1) * $perPage;
+		$perPage     = $this->pager->getPerPage($group);
+		$offset      = ($page - 1) * $perPage;
 
 		return $this->findAll($perPage, $offset);
 	}

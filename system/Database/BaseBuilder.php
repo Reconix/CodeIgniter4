@@ -997,20 +997,22 @@ class BaseBuilder
 		{
 			if (CI_DEBUG)
 			{
-				throw new InvalidArgumentException(sprintf('%s() expects $key to be a non-empty string', debug_backtrace(0, 2)[1]['function']));
+				throw new \InvalidArgumentException(sprintf('%s() expects $key to be a non-empty string', debug_backtrace(0, 2)[1]['function']));
 			}
-
+			// @codeCoverageIgnoreStart
 			return $this;
+			// @codeCoverageIgnoreEnd
 		}
 
 		if ($values === null || (! is_array($values) && ! ($values instanceof Closure)))
 		{
 			if (CI_DEBUG)
 			{
-				throw new InvalidArgumentException(sprintf('%s() expects $values to be of type array or closure', debug_backtrace(0, 2)[1]['function']));
+				throw new \InvalidArgumentException(sprintf('%s() expects $values to be of type array or closure', debug_backtrace(0, 2)[1]['function']));
 			}
-
+			// @codeCoverageIgnoreStart
 			return $this;
+			// @codeCoverageIgnoreEnd
 		}
 
 		is_bool($escape) || $escape = $this->db->protectIdentifiers;
@@ -1921,7 +1923,7 @@ class BaseBuilder
 		$limit         = $this->QBLimit;
 		$this->QBLimit = false;
 
-		$sql = ($this->QBDistinct === true)
+		$sql = ($this->QBDistinct === true || ! empty($this->QBGroupBy))
 			?
 			$this->countString . $this->db->protectIdentifiers('numrows') . "\nFROM (\n" . $this->compileSelect() . "\n) CI_count_all_results"
 			:
@@ -2036,8 +2038,9 @@ class BaseBuilder
 				{
 					throw new DatabaseException('You must use the "set" method to update an entry.');
 				}
-
+				// @codeCoverageIgnoreStart
 				return false;
+				// @codeCoverageIgnoreEnd
 			}
 		}
 		else
@@ -2048,8 +2051,9 @@ class BaseBuilder
 				{
 					throw new DatabaseException('insertBatch() called with no data');
 				}
-
+				// @codeCoverageIgnoreStart
 				return false;
+				// @codeCoverageIgnoreEnd
 			}
 
 			$this->setInsertBatch($set, '', $escape);
@@ -2258,8 +2262,9 @@ class BaseBuilder
 			{
 				throw new DatabaseException('You must use the "set" method to update an entry.');
 			}
-
+			// @codeCoverageIgnoreStart
 			return false;
+			// @codeCoverageIgnoreEnd
 		}
 
 		return true;
@@ -2308,7 +2313,9 @@ class BaseBuilder
 			{
 				throw new DatabaseException('You must use the "set" method to update an entry.');
 			}
+			// @codeCoverageIgnoreStart
 			return false;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$table = $this->QBFrom[0];
@@ -2492,8 +2499,9 @@ class BaseBuilder
 			{
 				throw new DatabaseException('You must use the "set" method to update an entry.');
 			}
-
+			// @codeCoverageIgnoreStart
 			return false;
+			// @codeCoverageIgnoreEnd
 		}
 
 		return true;
@@ -2521,8 +2529,9 @@ class BaseBuilder
 			{
 				throw new DatabaseException('You must specify an index to match on for batch updates.');
 			}
-
+			// @codeCoverageIgnoreStart
 			return false;
+			// @codeCoverageIgnoreEnd
 		}
 
 		if ($set === null)
@@ -2533,7 +2542,9 @@ class BaseBuilder
 				{
 					throw new DatabaseException('You must use the "set" method to update an entry.');
 				}
+				// @codeCoverageIgnoreStart
 				return false;
+				// @codeCoverageIgnoreEnd
 			}
 		}
 		else
@@ -2544,7 +2555,9 @@ class BaseBuilder
 				{
 					throw new DatabaseException('updateBatch() called with no data');
 				}
+				// @codeCoverageIgnoreStart
 				return false;
+				// @codeCoverageIgnoreEnd
 			}
 
 			$this->setUpdateBatch($set, $index);
@@ -2793,8 +2806,9 @@ class BaseBuilder
 			{
 				throw new DatabaseException('Deletes are not allowed unless they contain a "where" or "like" clause.');
 			}
-
+			// @codeCoverageIgnoreStart
 			return false;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$sql = $this->_delete($table);
@@ -3327,6 +3341,12 @@ class BaseBuilder
 		if (! empty($this->db))
 		{
 			$this->db->setAliasedTables([]);
+		}
+
+		// Reset QBFrom part
+		if (! empty($this->QBFrom))
+		{
+			$this->from(array_shift($this->QBFrom), true);
 		}
 	}
 
