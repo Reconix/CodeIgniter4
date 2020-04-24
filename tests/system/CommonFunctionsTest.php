@@ -12,6 +12,7 @@ use Config\Logger;
 use CodeIgniter\Test\Mock\MockIncomingRequest;
 use CodeIgniter\Test\TestLogger;
 use CodeIgniter\Test\Mock\MockSession;
+use Tests\Support\Models\JobModel;
 
 /**
  * @backupGlobals enabled
@@ -24,7 +25,8 @@ class CommonFunctionsTest extends \CodeIgniter\Test\CIUnitTestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-
+		$renderer = Services::renderer();
+		$renderer->resetData();
 		unset($_ENV['foo'], $_SERVER['foo']);
 	}
 
@@ -273,6 +275,18 @@ class CommonFunctionsTest extends \CodeIgniter\Test\CIUnitTestCase
 
 	// ------------------------------------------------------------------------
 
+	public function testModelNotExists()
+	{
+		$this->assertNull(model(UnexsistenceClass::class));
+	}
+
+	public function testModelExists()
+	{
+		$this->assertInstanceOf(JobModel::class, model(JobModel::class));
+	}
+
+	// ------------------------------------------------------------------------
+
 	/**
 	 * @runInSeparateProcess
 	 * @preserveGlobalState  disabled
@@ -403,6 +417,27 @@ class CommonFunctionsTest extends \CodeIgniter\Test\CIUnitTestCase
 
 		$this->assertTrue($answer1->hasCookie('foo', 'onething'));
 		$this->assertTrue($answer1->hasCookie('login_time'));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testTrace()
+	{
+		ob_start();
+		trace();
+		$content = ob_get_clean();
+
+		$this->assertStringContainsString('Debug Backtrace', $content);
+	}
+
+	public function testViewNotSaveData()
+	{
+		$data = [
+			'testString' => 'bar',
+			'bar'        => 'baz',
+		];
+		$this->assertStringContainsString('<h1>bar</h1>', view('\Tests\Support\View\Views\simples', $data, ['saveData' => false]));
+		$this->assertStringContainsString('<h1>is_not</h1>', view('\Tests\Support\View\Views\simples'));
 	}
 
 }
