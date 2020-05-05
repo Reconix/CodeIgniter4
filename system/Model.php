@@ -40,16 +40,16 @@
 namespace CodeIgniter;
 
 use Closure;
-use CodeIgniter\Exceptions\ModelException;
-use Config\Database;
-use CodeIgniter\I18n\Time;
-use CodeIgniter\Pager\Pager;
 use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Database\ConnectionInterface;
-use CodeIgniter\Validation\ValidationInterface;
-use CodeIgniter\Database\Exceptions\DataException;
 use CodeIgniter\Database\Exceptions\DatabaseException;
+use CodeIgniter\Database\Exceptions\DataException;
+use CodeIgniter\Exceptions\ModelException;
+use CodeIgniter\I18n\Time;
+use CodeIgniter\Pager\Pager;
+use CodeIgniter\Validation\ValidationInterface;
+use Config\Database;
 use ReflectionClass;
 use ReflectionProperty;
 use stdClass;
@@ -470,16 +470,23 @@ class Model
 		{
 			$builder->where($this->table . '.' . $this->deletedField, null);
 		}
+		else
+		{
+			if ($this->useSoftDeletes === true && empty($builder->QBGroupBy) && ! empty($this->primaryKey))
+			{
+				$builder->groupBy($this->table . '.' . $this->primaryKey);
+			}
+		}
 
 		// Some databases, like PostgreSQL, need order
 		// information to consistently return correct results.
-		if (empty($builder->QBOrderBy) && ! empty($this->primaryKey))
+		if (! empty($builder->QBGroupBy) && empty($builder->QBOrderBy) && ! empty($this->primaryKey))
 		{
 			$builder->orderBy($this->table . '.' . $this->primaryKey, 'asc');
 		}
 
 		$row = $builder->limit(1, 0)
-				->get();
+					   ->get();
 
 		$row = $row->getFirstRow($this->tempReturnType);
 
@@ -898,15 +905,15 @@ class Model
 	 * Deletes a single record from $this->table where $id matches
 	 * the table's primaryKey
 	 *
-	 * @param integer|array|null $id    The rows primary key(s)
-	 * @param boolean            $purge Allows overriding the soft deletes setting.
+	 * @param integer|string|array|null $id    The rows primary key(s)
+	 * @param boolean                   $purge Allows overriding the soft deletes setting.
 	 *
 	 * @return mixed
 	 * @throws \CodeIgniter\Database\Exceptions\DatabaseException
 	 */
 	public function delete($id = null, bool $purge = false)
 	{
-		if (! empty($id) && is_numeric($id))
+		if (! empty($id) && (is_numeric($id) || is_string($id)))
 		{
 			$id = [$id];
 		}
@@ -1432,10 +1439,6 @@ class Model
 			return true;
 		}
 
-		// Replace any placeholders (i.e. {id}) in the rules with
-		// the value found in $data, if exists.
-		$rules = $this->fillPlaceholders($rules, $data);
-
 		$this->validation->setRules($rules, $this->validationMessages);
 		$valid = $this->validation->run($data, null, $this->DBGroup);
 
@@ -1487,6 +1490,10 @@ class Model
 	 * The value of {id} would be replaced with the actual id in the form data:
 	 *
 	 *  'required|is_unique[users,email,id,13]'
+	 *
+	 * @codeCoverageIgnore
+	 *
+	 * @deprecated use fillPlaceholders($rules, $data) from Validation instead
 	 *
 	 * @param array $rules
 	 * @param array $data

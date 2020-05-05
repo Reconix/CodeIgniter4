@@ -1,17 +1,17 @@
 <?php
 
-use CodeIgniter\Session\Handlers\FileHandler;
-use CodeIgniter\HTTP\Response;
-use Config\App;
 use CodeIgniter\Config\Services;
-use CodeIgniter\Router\RouteCollection;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\Response;
 use CodeIgniter\HTTP\URI;
 use CodeIgniter\HTTP\UserAgent;
-use Config\Logger;
+use CodeIgniter\Router\RouteCollection;
+use CodeIgniter\Session\Handlers\FileHandler;
 use CodeIgniter\Test\Mock\MockIncomingRequest;
-use CodeIgniter\Test\TestLogger;
 use CodeIgniter\Test\Mock\MockSession;
+use CodeIgniter\Test\TestLogger;
+use Config\App;
+use Config\Logger;
 use Tests\Support\Models\JobModel;
 
 /**
@@ -438,6 +438,21 @@ class CommonFunctionsTest extends \CodeIgniter\Test\CIUnitTestCase
 		];
 		$this->assertStringContainsString('<h1>bar</h1>', view('\Tests\Support\View\Views\simples', $data, ['saveData' => false]));
 		$this->assertStringContainsString('<h1>is_not</h1>', view('\Tests\Support\View\Views\simples'));
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState  disabled
+	 */
+	public function testForceHttpsNullRequestAndResponse()
+	{
+		$this->assertNull(Services::response()->getHeader('Location'));
+
+		force_https();
+
+		$this->assertEquals('https://example.com', Services::response()->getHeader('Location')->getValue());
 	}
 
 }
