@@ -46,7 +46,7 @@ the following items are available.
 **$handler**
 
 The is the name of the handler that should be used as the primary handler when starting up the engine.
-Available names are: dummy, file, memcached, redis, wincache.
+Available names are: dummy, file, memcached, redis, predis, wincache.
 
 **$backupHandler**
 
@@ -69,7 +69,7 @@ This is an array of servers that will be used when using the ``Memcache(d)`` han
 
 **$redis**
 
-The settings for the Redis server that you wish to use when using the ``Redis`` handler.
+The settings for the Redis server that you wish to use when using the ``Redis`` and ``Predis`` handler.
 
 ***************
 Class Reference
@@ -171,7 +171,7 @@ Class Reference
 
 			$cache->clean();
 
-.. php:method:: ⠀cache_info()
+.. php:method:: ⠀getCacheInfo()
 
 	:returns:	Information on the entire cache database
 	:rtype:	mixed
@@ -180,7 +180,7 @@ Class Reference
 
 	Example::
 
-		var_dump($cache->cache_info());
+		var_dump($cache->getCacheInfo());
 
 .. note:: The information returned and the structure of the data is dependent
 		  on which adapter is being used.
@@ -255,9 +255,21 @@ Config options to connect to redis server stored in the cache configuration file
 		'timeout'  => 0,
 		'database' => 0,
 	];
-	
+
 For more information on Redis, please see
 `https://redis.io <https://redis.io>`_.
+
+==============
+Predis Caching
+==============
+
+Predis is a flexible and feature-complete PHP client library for the Redis key-value store.
+To use it, from the command line inside your project root::
+
+    composer require predis/predis
+
+For more information on Redis, please see
+`https://github.com/nrk/predis <https://github.com/nrk/predis>`_.
 
 ===========
 Dummy Cache

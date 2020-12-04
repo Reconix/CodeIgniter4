@@ -205,6 +205,13 @@ class PagerTest extends \CodeIgniter\Test\CIUnitTestCase
 		$this->assertEquals(1, $this->pager->getPageCount());
 	}
 
+	public function testGetTotalCorrectValue()
+	{
+		$this->pager->store('foo', 3, 12, 70);
+
+		$this->assertEquals(70, $this->pager->getTotal('foo'));
+	}
+
 	public function testGetTotalPagesCalcsCorrectValue()
 	{
 		$this->pager->store('foo', 3, 12, 70);
@@ -368,6 +375,12 @@ class PagerTest extends \CodeIgniter\Test\CIUnitTestCase
 		);
 		$this->assertStringContainsString(
 			'?page_custom=1', $this->pager->makeLinks(1, null, 1, 'default_full', 0, 'custom')
+		);
+		$this->assertStringContainsString(
+			'/1', $this->pager->makeLinks(1, 10, 1, 'default_full', 1)
+		);
+		$this->assertStringContainsString(
+			'<li class="active">', $this->pager->makeLinks(1, 10, 1, 'default_full', 1)
 		);
 	}
 

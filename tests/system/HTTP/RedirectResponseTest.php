@@ -26,7 +26,7 @@ class RedirectResponseTest extends \CodeIgniter\Test\CIUnitTestCase
 		$_SERVER['REQUEST_METHOD'] = 'GET';
 
 		$this->config          = new App();
-		$this->config->baseURL = 'http://example.com';
+		$this->config->baseURL = 'http://example.com/';
 
 		$this->routes = new RouteCollection(Services::locator(), new \Config\Modules());
 		Services::injectMock('routes', $this->routes);
@@ -229,6 +229,20 @@ class RedirectResponseTest extends \CodeIgniter\Test\CIUnitTestCase
 		$this->assertTrue($response->hasCookie('foo', 'bar'));
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState  disabled
+	 */
+	public function testWithCookiesWithEmptyCookies()
+	{
+		$_SESSION = [];
+
+		$response = new RedirectResponse(new App());
+		$response = $response->withCookies();
+
+		$this->assertEmpty($response->getCookies());
+	}
+
 	public function testWithHeaders()
 	{
 		$_SESSION = [];
@@ -246,5 +260,21 @@ class RedirectResponseTest extends \CodeIgniter\Test\CIUnitTestCase
 			$this->assertTrue($response->hasHeader($name));
 			$this->assertEquals($header->getValue(), $response->getHeader($name)->getValue());
 		}
+	}
+
+	public function testWithHeadersWithEmptyHeaders()
+	{
+		$_SESSION = [];
+
+		$baseResponse = service('response');
+		foreach ($baseResponse->getHeaders() as $key => $val)
+		{
+			$baseResponse->removeHeader($key);
+		}
+
+		$response = new RedirectResponse(new App());
+		$response = $response->withHeaders();
+
+		$this->assertEmpty($baseResponse->getHeaders());
 	}
 }

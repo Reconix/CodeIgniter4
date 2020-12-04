@@ -67,9 +67,9 @@ class FileLocatorTest extends \CodeIgniter\Test\CIUnitTestCase
 
 	public function testLocateFileWorksInApplicationDirectoryWithoutFolder()
 	{
-		$file = 'bootstrap';
+		$file = 'Common';
 
-		$expected = SYSTEMPATH . 'bootstrap.php';
+		$expected = APPPATH . 'Common.php';
 
 		$this->assertEquals($expected, $this->locator->locateFile($file));
 	}
@@ -131,6 +131,15 @@ class FileLocatorTest extends \CodeIgniter\Test\CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
+	public function testLocateFileNotFoundExistingNamespace()
+	{
+		$file = '\App\Views/unexistence-file.php';
+
+		$this->assertFalse($this->locator->locateFile($file, 'Views'));
+	}
+
+	//--------------------------------------------------------------------
+
 	public function testLocateFileNotFoundWithBadNamespace()
 	{
 		$file = '\Blogger\admin/posts.php';
@@ -180,6 +189,27 @@ class FileLocatorTest extends \CodeIgniter\Test\CIUnitTestCase
 		$foundFiles = $this->locator->search('Views/Fake.html');
 
 		$this->assertArrayNotHasKey(0, $foundFiles);
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testSearchPrioritizeSystemOverApp()
+	{
+		$foundFiles = $this->locator->search('Language/en/Validation.php', 'php', false);
+
+		$this->assertEquals([
+			SYSTEMPATH . 'Language/en/Validation.php',
+			APPPATH . 'Language/en/Validation.php',
+		],
+			$foundFiles
+		);
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testListNamespaceFilesEmptyPrefixAndPath()
+	{
+		$this->assertEmpty($this->locator->listNamespaceFiles('', ''));
 	}
 
 	//--------------------------------------------------------------------

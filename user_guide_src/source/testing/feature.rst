@@ -14,8 +14,9 @@ and more.
 The Test Class
 ==============
 
-Feature testing requires that all of your test classes extend the ``CodeIgniter\Test\FeatureTestCase`` class. Since this
-extends `CIDatabaseTestCase <database.html>`_ you must always ensure that ``parent::setUp()`` and ``parent::tearDown()``
+Feature testing requires that all of your test classes extend the ``CodeIgniter\Test\FeatureTestCase``
+class or use the ``CodeIgniter\Test\FeatureTestTrait``. Since these testing tools extend
+`CIDatabaseTestCase <database.html>`_ you must always ensure that ``parent::setUp()`` and ``parent::tearDown()``
 are called before you take your actions.
 ::
 
@@ -87,8 +88,8 @@ Setting Session Values
 ----------------------
 
 You can set custom session values to use during a single test with the ``withSession()`` method. This takes an array
-of key/value pairs that should exist within the $_SESSION variable when this request is made. This is handy for testing
-authentication and more.
+of key/value pairs that should exist within the $_SESSION variable when this request is made, or ``null` to indicate
+that the current values of ``$_SESSION`` should be used. This is handy for testing authentication and more.
 ::
 
     $values = [
@@ -97,6 +98,24 @@ authentication and more.
 
     $result = $this->withSession($values)
         ->get('admin');
+    
+    // Or...
+    
+    $_SESSION['logged_in'] = 123;
+    
+    $result = $this->withSession()->get('admin');
+
+Setting Headers
+---------------
+
+You can set header values with the ``withHeaders()`` method. This takes an array of key/value pairs that would be
+passed as a header into the call.::
+
+    $headers = [
+        'CONTENT_TYPE' => 'application/json'
+    ];
+
+    $result = $this->withHeaders($headers)->post('users');
 
 Bypassing Events
 ----------------
@@ -107,6 +126,28 @@ to send out emails. You can tell the system to skip any event handling with the 
     $result = $this->skipEvents()
         ->post('users', $userInfo);
 
+Formatting The Request
+-----------------------
+
+You can set the format of your request's body using the ``withBodyFormat()`` method. Currently this supports either
+`json` or `xml`. This will take the parameters passed into ``call(), post(), get()...`` and assign them to the
+body of the request in the given format. This will also set the `Content-Type` header for your request accordingly.
+This is useful when testing JSON or XML API's so that you can set the request in the form that the controller will expect.
+::
+
+    //If your feature test contains this:
+    $result = $this->withBodyFormat('json')
+        ->post('users', $userInfo);
+
+    //Your controller can then get the parameters passed in with:
+    $userInfo = $this->request->getJson();
+
+Setting the Body
+----------------
+
+You can set the body of your request with the ``withBody()`` method. This allows you to format the body how you want
+to format it. It is recommended that you use this if you have more complicated xml's to test. This will also not set
+the Content-Type header for you so if you need that, you can set it with the ``withHeaders()`` method.
 
 Testing the Response
 ====================
@@ -154,6 +195,14 @@ Asserts that the Response is an instance of RedirectResponse.
 ::
 
     $this->assertRedirect();
+
+**getRedirectUrl()**
+
+Returns the URL set for a RedirectResponse, or null for failure.
+::
+
+    $url = $result->getRedirectUrl();
+    $this->assertEquals(site_url('foo/bar'), $url);
 
 **assertStatus(int $code)**
 
@@ -290,9 +339,9 @@ Asserts that an anchor tag is found with matching **$text** as the body of the t
 Asserts that an input tag exists with the name and value::
 
     // Check that an input exists named 'user' with the value 'John Snow'
-    $results->seeInField('user', 'John Snow');
+    $results->assertSeeInField('user', 'John Snow');
     // Check a multi-dimensional input
-    $results->seeInField('user[name]', 'John Snow');
+    $results->assertSeeInField('user[name]', 'John Snow');
 
 
 

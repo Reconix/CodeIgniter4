@@ -51,7 +51,7 @@ class Popcorn extends Controller
 
 	public function canyon()
 	{
-		echo 'Hello-o-o';
+		echo 'Hello-o-o ' . $this->request->getGet('foo');
 	}
 
 	public function cat()
@@ -73,4 +73,8 @@ class Popcorn extends Controller
 		return redirect()->route('testing-index');
 	}
 
+	public function echoJson()
+	{
+		return $this->response->setJSON($this->request->getJSON());
+	}
 }

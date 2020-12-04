@@ -176,7 +176,7 @@ class IncomingRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 			'es',
 		];
 		$config->defaultLocale    = 'es';
-		$config->baseURL          = 'http://example.com';
+		$config->baseURL          = 'http://example.com/';
 
 		$request = new IncomingRequest($config, new URI(), null, new UserAgent());
 
@@ -192,7 +192,7 @@ class IncomingRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 			'es',
 		];
 		$config->defaultLocale    = 'es';
-		$config->baseURL          = 'http://example.com';
+		$config->baseURL          = 'http://example.com/';
 
 		$request = new IncomingRequest($config, new URI(), null, new UserAgent());
 
@@ -215,7 +215,7 @@ class IncomingRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 			'fr',
 			'en',
 		];
-		$config->baseURL          = 'http://example.com';
+		$config->baseURL          = 'http://example.com/';
 
 		$request = new IncomingRequest($config, new URI(), null, new UserAgent());
 
@@ -233,7 +233,7 @@ class IncomingRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 			'fr',
 			'en',
 		];
-		$config->baseURL          = 'http://example.com';
+		$config->baseURL          = 'http://example.com/';
 
 		$request = new IncomingRequest($config, new URI(), null, new UserAgent());
 
@@ -291,7 +291,7 @@ class IncomingRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 		];
 
 		$config          = new App();
-		$config->baseURL = 'http://example.com';
+		$config->baseURL = 'http://example.com/';
 
 		$request = new IncomingRequest($config, new URI(), $json, new UserAgent());
 
@@ -309,7 +309,7 @@ class IncomingRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 		];
 
 		$config          = new App();
-		$config->baseURL = 'http://example.com';
+		$config->baseURL = 'http://example.com/';
 
 		$request = new IncomingRequest($config, new URI(), $rawstring, new UserAgent());
 
@@ -326,7 +326,7 @@ class IncomingRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 
 	public function testIsAJAX()
 	{
-		$_SERVER['HTTP_X_REQUESTED_WITH'] = 'xmlhttprequest';
+		$this->request->appendHeader('X-Requested-With', 'XMLHttpRequest');
 		$this->assertTrue($this->request->isAJAX());
 	}
 
@@ -340,13 +340,13 @@ class IncomingRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 
 	public function testIsSecureFrontEnd()
 	{
-		$_SERVER['HTTP_FRONT_END_HTTPS'] = 'on';
+		$this->request->appendHeader('Front-End-Https', 'on');
 		$this->assertTrue($this->request->isSecure());
 	}
 
 	public function testIsSecureForwarded()
 	{
-		$_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
+		$this->request->appendHeader('X-Forwarded-Proto', 'https');
 		$this->assertTrue($this->request->isSecure());
 	}
 
@@ -455,4 +455,23 @@ class IncomingRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 		$this->assertEquals($_GET, $this->request->getGetPost());
 	}
 
+	public function testWithFalseBody()
+	{
+		// Use `false` here to simulate file_get_contents returning a false value
+		$request = new IncomingRequest(new App(), new URI(), false, new UserAgent());
+
+		$this->assertTrue($request->getBody() !== false);
+		$this->assertTrue($request->getBody() === null);
+	}
+
+	/**
+	 * @see https://github.com/codeigniter4/CodeIgniter4/issues/3020
+	 */
+	public function testGetPostIndexNotExists()
+	{
+		$_POST['TEST'] = 5;
+		$_GET['TEST']  = 3;
+		$this->assertNull($this->request->getPostGet('gc'));
+		$this->assertNull($this->request->getGetPost('gc'));
+	}
 }

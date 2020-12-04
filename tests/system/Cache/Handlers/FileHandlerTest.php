@@ -1,10 +1,6 @@
 <?php
 namespace CodeIgniter\Cache\Handlers;
 
-set_error_handler(function (int $errno, string $errstr, string $errfile, int $errline, array $errcontext) {
-	//throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
-});
-
 class FileHandlerTest extends \CodeIgniter\Test\CIUnitTestCase
 {
 
@@ -89,12 +85,12 @@ class FileHandlerTest extends \CodeIgniter\Test\CIUnitTestCase
 
 	public function testGet()
 	{
-		$this->fileHandler->save(self::$key1, 'value', 1);
+		$this->fileHandler->save(self::$key1, 'value', 2);
 
 		$this->assertSame('value', $this->fileHandler->get(self::$key1));
 		$this->assertNull($this->fileHandler->get(self::$dummy));
 
-		\CodeIgniter\CLI\CLI::wait(2);
+		\CodeIgniter\CLI\CLI::wait(3);
 		$this->assertNull($this->fileHandler->get(self::$key1));
 	}
 

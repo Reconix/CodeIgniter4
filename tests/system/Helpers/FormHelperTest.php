@@ -314,7 +314,7 @@ EOH;
 	public function testFormTextarea()
 	{
 		$expected = <<<EOH
-<textarea name="notes" cols="40" rows="10" >Notes</textarea>\n
+<textarea name="notes" cols="40" rows="10">Notes</textarea>\n
 EOH;
 		$this->assertEquals($expected, form_textarea('notes', 'Notes'));
 	}
@@ -327,10 +327,33 @@ EOH;
 			'value' => 'bar',
 		];
 		$expected = <<<EOH
-<textarea name="foo" cols="40" rows="10" >bar</textarea>
+<textarea name="foo" cols="40" rows="10">bar</textarea>
 
 EOH;
 		$this->assertEquals($expected, form_textarea($data));
+	}
+
+	// ------------------------------------------------------------------------
+	public function testFormTextareaExtraRowsColsArray()
+	{
+		$extra    = [
+			'cols' => '30',
+			'rows' => '5',
+		];
+		$expected = <<<EOH
+<textarea name="notes" cols="30" rows="5">Notes</textarea>\n
+EOH;
+		$this->assertEquals($expected, form_textarea('notes', 'Notes', $extra));
+	}
+
+	// ------------------------------------------------------------------------
+	public function testFormTextareaExtraRowsColsString()
+	{
+		$extra    = 'cols="30" rows="5"';
+		$expected = <<<EOH
+<textarea name="notes" cols="30" rows="5">Notes</textarea>\n
+EOH;
+		$this->assertEquals($expected, form_textarea('notes', 'Notes', $extra));
 	}
 
 	// ------------------------------------------------------------------------
@@ -745,6 +768,9 @@ EOH;
 
 		$_SESSION = [];
 		$this->assertEquals('', set_checkbox('foo', 'bar'));
+
+		$_SESSION = [];
+		$this->assertEquals(' checked="checked"', set_checkbox('foo', 'bar', true));
 	}
 
 	// ------------------------------------------------------------------------
@@ -772,6 +798,9 @@ EOH;
 
 		$_SESSION = [];
 		$this->assertEquals('', set_checkbox('foo', 'bar'));
+
+		$_SESSION = [];
+		$this->assertEquals(' checked="checked"', set_checkbox('foo', '0', true));
 	}
 
 	// ------------------------------------------------------------------------
@@ -803,6 +832,7 @@ EOH;
 		$_POST['bar'] = 'baz';
 		$this->assertEquals(' checked="checked"', set_radio('bar', 'baz'));
 		$this->assertEquals('', set_radio('bar', 'boop'));
+		$this->assertEquals(' checked="checked"', set_radio('bar', 'boop', true));
 	}
 
 	/**
@@ -814,6 +844,9 @@ EOH;
 		$_POST['bar'] = 0;
 		$this->assertEquals(' checked="checked"', set_radio('bar', '0'));
 		$this->assertEquals('', set_radio('bar', 'boop'));
+
+		$_POST = [];
+		$this->assertEquals(' checked="checked"', set_radio('bar', '0', true));
 	}
 
 	public function testSetRadioFromPostArray()

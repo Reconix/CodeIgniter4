@@ -24,7 +24,7 @@ copyright = '2019-2020 CodeIgniter Foundation'
 version = '4.0'
 
 # The full version, including alpha/beta/rc tags.
-release = '4.0.3'
+release = '4.0.4'
 
 # -- General configuration ---------------------------------------------------
 
@@ -40,7 +40,7 @@ extensions = [
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+# templates_path = ['_templates']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
