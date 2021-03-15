@@ -12,6 +12,7 @@ on:
       - 'tests/**'
       - composer.json
       - spark
+      - phpunit.xml.dist
       - '**.php'
       - .github/workflows/test-phpunit.yml
   pull_request:
@@ -25,21 +26,22 @@ on:
       - 'tests/**'
       - composer.json
       - spark
+      - phpunit.xml.dist
       - '**.php'
       - .github/workflows/test-phpunit.yml
 
 jobs:
 
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     name: PHP ${{ matrix.php-versions }} - ${{ matrix.db-platforms }}
 
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ['7.2', '7.3', '7.4']
-        db-platforms: ['MySQLi', 'Postgre', 'SQLite3', 'Sqlsrv']
+        php-versions: ['7.3', '7.4', '8.0']
+        db-platforms: ['MySQLi', 'Postgre', 'SQLite3', 'SQLSRV']
 
     services:
       mysql:
@@ -72,10 +74,14 @@ jobs:
         ports:
           - 6379:6379
         options: --health-cmd "redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      memcached:
+        image: memcached:1.6-alpine
+        ports:
+          - 11211:11211
 
     steps:
       - name: Create database for MSSQL Server
-        if: ${{ matrix.db-platforms == 'Sqlsrv'}}
+        if: ${{ matrix.db-platforms == 'SQLSRV'}}
         run: sqlcmd -S localhost -U sa -P 1Secure*Password1 -Q "CREATE DATABASE test"
 
       - name: Checkout
@@ -86,20 +92,23 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           tools: composer, pecl
-          extensions: imagick, sqlsrv
+          extensions: imagick, sqlsrv-beta, gd, sqlite3, redis, memcached, pgsql
           coverage: xdebug
         env:
           update: true
 
-      - name: Install Memcached
-        uses: niden/actions-memcached@v7
+      - name: Install latest ImageMagick
+        run: |
+          sudo apt-get remove ghostscript
+          sudo apt-get update
+          sudo apt-get install -y imagemagick ghostscript-x gsfonts
 
       - name: Get composer cache directory
         id: composercache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.4
         with:
           path: ${{ steps.composercache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}

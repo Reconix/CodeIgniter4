@@ -1,12 +1,17 @@
-<?php namespace CodeIgniter\Database\Live;
+<?php
 
-use CodeIgniter\Test\CIDatabaseTestCase;
+namespace CodeIgniter\Database\Live;
+
+use CodeIgniter\Test\CIUnitTestCase;
+use CodeIgniter\Test\DatabaseTestTrait;
 
 /**
  * @group DatabaseLive
  */
-class OrderTest extends CIDatabaseTestCase
+class OrderTest extends CIUnitTestCase
 {
+	use DatabaseTestTrait;
+
 	protected $refresh = true;
 
 	protected $seed = 'Tests\Support\Database\Seeds\CITestSeeder';
@@ -66,22 +71,21 @@ class OrderTest extends CIDatabaseTestCase
 			->orderBy('name', 'random')
 			->getCompiledSelect();
 
-		$key = 'RANDOM()';
+		$key   = 'RANDOM()';
+		$table = $this->db->protectIdentifiers('job', true);
 
 		if ($this->db->DBDriver === 'MySQLi')
 		{
 			$key = 'RAND()';
 		}
-		elseif ($this->db->DBDriver === 'Sqlsrv')
+		elseif ($this->db->DBDriver === 'SQLSRV')
 		{
-			$key = 'NEWID()';
+			$key   = 'NEWID()';
+			$table = '"' . $this->db->getDatabase() . '"."' . $this->db->schema . '".' . $table;
 		}
 
-		$expected = 'SELECT * FROM ' . $this->db->protectIdentifiers('job', true) . ' ORDER BY ' . $key;
+		$expected = 'SELECT * FROM ' . $table . ' ORDER BY ' . $key;
 
 		$this->assertEquals($expected, str_replace("\n", ' ', $sql));
 	}
-
-	//--------------------------------------------------------------------
-
 }

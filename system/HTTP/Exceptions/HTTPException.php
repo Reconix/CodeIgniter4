@@ -60,9 +60,8 @@ class HTTPException extends FrameworkException
 	 * @param string $errorNum
 	 * @param string $error
 	 *
-	 * @return             \CodeIgniter\HTTP\Exceptions\HTTPException
+	 * @return HTTPException
 	 *
-	 * Not testable with travis-ci; we over-ride the method which triggers it
 	 * @codeCoverageIgnore
 	 */
 	public static function forCurlError(string $errorNum, string $error)
@@ -238,9 +237,13 @@ class HTTPException extends FrameworkException
 	 * @param string $samesite
 	 *
 	 * @return HTTPException
+	 *
+	 * @deprecated Use `CookieException::forInvalidSameSite()` instead.
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public static function forInvalidSameSiteSetting(string $samesite)
 	{
-		return new static(lang('HTTP.invalidSameSiteSetting', [$samesite]));
+		return new static(lang('Security.invalidSameSiteSetting', [$samesite]));
 	}
 }

@@ -7,7 +7,8 @@ use CodeIgniter\Database\Config;
 use CodeIgniter\Database\MigrationRunner;
 use CodeIgniter\Events\Events;
 use CodeIgniter\Exceptions\ConfigException;
-use CodeIgniter\Test\CIDatabaseTestCase;
+use CodeIgniter\Test\CIUnitTestCase;
+use CodeIgniter\Test\DatabaseTestTrait;
 use Config\Database;
 use Config\Migrations;
 use Config\Services;
@@ -16,8 +17,10 @@ use org\bovigo\vfs\vfsStream;
 /**
  * @group DatabaseLive
  */
-class MigrationRunnerTest extends CIDatabaseTestCase
+class MigrationRunnerTest extends CIUnitTestCase
 {
+	use DatabaseTestTrait;
+
 	protected $refresh = true;
 
 	protected $root;
@@ -68,9 +71,7 @@ class MigrationRunnerTest extends CIDatabaseTestCase
 	public function testGetHistory()
 	{
 		$runner = new MigrationRunner($this->config);
-
-		$tableMaker = $this->getPrivateMethodInvoker($runner, 'ensureTable');
-		$tableMaker();
+		$runner->ensureTable();
 
 		$history = [
 			'id'        => 4,
@@ -82,7 +83,7 @@ class MigrationRunnerTest extends CIDatabaseTestCase
 			'batch'     => 1,
 		];
 
-		if ($this->db->DBDriver === 'Sqlsrv')
+		if ($this->db->DBDriver === 'SQLSRV')
 		{
 			$this->db->simpleQuery('SET IDENTITY_INSERT ' . $this->db->prefixTable('migrations') . ' ON');
 		}
@@ -91,7 +92,7 @@ class MigrationRunnerTest extends CIDatabaseTestCase
 
 		$this->assertEquals($history, (array) $runner->getHistory()[0]);
 
-		if ($this->db->DBDriver === 'Sqlsrv')
+		if ($this->db->DBDriver === 'SQLSRV')
 		{
 			$this->db->simpleQuery('SET IDENTITY_INSERT ' . $this->db->prefixTable('migrations') . ' OFF');
 
@@ -103,9 +104,7 @@ class MigrationRunnerTest extends CIDatabaseTestCase
 	public function testGetHistoryReturnsEmptyArrayWithNoResults()
 	{
 		$runner = new MigrationRunner($this->config);
-
-		$tableMaker = $this->getPrivateMethodInvoker($runner, 'ensureTable');
-		$tableMaker();
+		$runner->ensureTable();
 
 		$this->assertEquals([], $runner->getHistory());
 	}

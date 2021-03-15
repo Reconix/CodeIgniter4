@@ -84,18 +84,13 @@ class MigrateStatus extends BaseCommand
 		$runner = Services::migrations();
 		$group  = $params['g'] ?? CLI::getOption('g');
 
-		if (is_string($group))
-		{
-			$runner->setGroup($group);
-		}
-
 		// Get all namespaces
 		$namespaces = Services::autoloader()->getNamespace();
 
 		// Collection of migration status
 		$status = [];
 
-		foreach ($namespaces as $namespace => $path)
+		foreach (array_keys($namespaces) as $namespace)
 		{
 			if (ENVIRONMENT !== 'testing')
 			{
@@ -120,7 +115,7 @@ class MigrateStatus extends BaseCommand
 				continue;
 			}
 
-			$history = $runner->getHistory();
+			$history = $runner->getHistory((string) $group);
 			ksort($migrations);
 
 			foreach ($migrations as $uid => $migration)

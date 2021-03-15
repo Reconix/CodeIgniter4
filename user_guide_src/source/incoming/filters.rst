@@ -69,7 +69,7 @@ This is typically used to perform redirects, like in this example::
 
         if (! $auth->isLoggedIn())
         {
-            return redirect('login');
+            return redirect()->to(site_url('login'));
         }
     }
 
@@ -171,7 +171,7 @@ In addition to the standard HTTP methods, this also supports two special cases: 
 self-explanatory here, but 'cli' would apply to all requests that were run from the command line, while 'ajax'
 would apply to every AJAX request.
 
-.. note:: The AJAX requests depends on the ``X-Requested-With`` header, which in some cases is not sent by default in XHR requests via JavaScript (i.e. fetch). See the :doc:`AJAX Requests </general/ajax>` section on how to avoid this problem.
+.. note:: The AJAX requests depends on the ``X-Requested-With`` header, which in some cases is not sent by default in XHR requests via JavaScript (i.e., fetch). See the :doc:`AJAX Requests </general/ajax>` section on how to avoid this problem.
 
 $filters
 ========

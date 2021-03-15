@@ -48,11 +48,13 @@ class MockConnection extends BaseConnection
 	 * @param boolean $setEscapeFlags
 	 * @param string  $queryClass
 	 *
-	 * @return BaseResult|Query|false
+	 * @return BaseResult|Query|boolean
+	 *
+	 * @todo BC set $queryClass default as null in 4.1
 	 */
-	public function query(string $sql, $binds = null, bool $setEscapeFlags = true, string $queryClass = 'CodeIgniter\\Database\\Query')
+	public function query(string $sql, $binds = null, bool $setEscapeFlags = true, string $queryClass = '')
 	{
-		$queryClass = str_replace('Connection', 'Query', get_class($this));
+		$queryClass = str_replace('Connection', 'Query', static::class);
 
 		$query = new $queryClass($this);
 
@@ -79,8 +81,14 @@ class MockConnection extends BaseConnection
 
 		$query->setDuration($startTime);
 
-		$resultClass = str_replace('Connection', 'Result', get_class($this));
+		// resultID is not false, so it must be successful
+		if ($query->isWriteType())
+		{
+			return true;
+		}
 
+		// query is not write-type, so it must be read-type query; return QueryResult
+		$resultClass = str_replace('Connection', 'Result', get_class($this));
 		return new $resultClass($this->connID, $this->resultID);
 	}
 

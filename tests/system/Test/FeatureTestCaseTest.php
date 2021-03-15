@@ -1,6 +1,9 @@
 <?php
 
+namespace CodeIgniter\Test;
+
 use CodeIgniter\Exceptions\PageNotFoundException;
+use CodeIgniter\HTTP\Response;
 use CodeIgniter\Test\FeatureResponse;
 use CodeIgniter\Test\FeatureTestCase;
 
@@ -50,7 +53,7 @@ class FeatureTestCaseTest extends FeatureTestCase
 		$response = $this->call('get', 'home');
 
 		$this->assertInstanceOf(FeatureResponse::class, $response);
-		$this->assertInstanceOf(\CodeIgniter\HTTP\Response::class, $response->response);
+		$this->assertInstanceOf(Response::class, $response->response);
 		$this->assertTrue($response->isOK());
 		$this->assertEquals('Hello Earth', $response->response->getBody());
 		$this->assertEquals(200, $response->response->getStatusCode());
@@ -335,7 +338,7 @@ class FeatureTestCaseTest extends FeatureTestCase
 		$request = $this->withBodyFormat('json')->setRequestBody($request, ['foo1' => 'bar1']);
 
 		$this->assertJsonStringEqualsJsonString(json_encode(['foo1' => 'bar1']), $request->getBody());
-		$this->assertTrue('application/json' === $request->getHeader('Content-Type')->getValue());
+		$this->assertTrue('application/json' === $request->header('Content-Type')->getValue());
 	}
 
 	public function testSetupRequestBodyWithXml()
@@ -349,7 +352,7 @@ class FeatureTestCaseTest extends FeatureTestCase
 ';
 
 		$this->assertEquals($expectedXml, $request->getBody());
-		$this->assertTrue('application/xml' === $request->getHeader('Content-Type')->getValue());
+		$this->assertTrue('application/xml' === $request->header('Content-Type')->getValue());
 	}
 
 	public function testSetupRequestBodyWithBody()

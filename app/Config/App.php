@@ -3,6 +3,7 @@
 namespace Config;
 
 use CodeIgniter\Config\BaseConfig;
+use DateTimeInterface;
 
 class App extends BaseConfig
 {
@@ -279,14 +280,14 @@ class App extends BaseConfig
 
 	/**
 	 * --------------------------------------------------------------------------
-	 * Cookie HTTP Only
+	 * Cookie HttpOnly
 	 * --------------------------------------------------------------------------
 	 *
 	 * Cookie will only be accessible via HTTP(S) (no JavaScript).
 	 *
 	 * @var boolean
 	 */
-	public $cookieHTTPOnly = false;
+	public $cookieHTTPOnly = true;
 
 	/**
 	 * --------------------------------------------------------------------------
@@ -299,13 +300,49 @@ class App extends BaseConfig
 	 * - Strict
 	 * - ''
 	 *
+	 * Alternatively, you can use the constant names:
+	 * - `Cookie::SAMESITE_NONE`
+	 * - `Cookie::SAMESITE_LAX`
+	 * - `Cookie::SAMESITE_STRICT`
+	 *
 	 * Defaults to `Lax` for compatibility with modern browsers. Setting `''`
-	 * (empty string) means no SameSite attribute will be set on cookies. If
-	 * set to `None`, `$cookieSecure` must also be set.
+	 * (empty string) means default SameSite attribute set by browsers (`Lax`)
+	 * will be set on cookies. If set to `None`, `$cookieSecure` must also be set.
 	 *
 	 * @var string
 	 */
 	public $cookieSameSite = 'Lax';
+
+	/**
+	 * --------------------------------------------------------------------------
+	 * Cookie Raw
+	 * --------------------------------------------------------------------------
+	 *
+	 * This flag allows setting a "raw" cookie, i.e., its name and value are
+	 * not URL encoded using `rawurlencode()`.
+	 *
+	 * If this is set to `true`, cookie names should be compliant of RFC 2616's
+	 * list of allowed characters.
+	 *
+	 * @var boolean
+	 *
+	 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#attributes
+	 * @see https://tools.ietf.org/html/rfc2616#section-2.2
+	 */
+	public $cookieRaw = false;
+
+	/**
+	 * --------------------------------------------------------------------------
+	 * Cookie Expires Timestamp
+	 * --------------------------------------------------------------------------
+	 *
+	 * Default expires timestamp for cookies. Setting this to `0` will mean the
+	 * cookie will not have the `Expires` attribute and will behave as a session
+	 * cookie.
+	 *
+	 * @var DateTimeInterface|integer|string
+	 */
+	public $cookieExpires = 0;
 
 	/**
 	 * --------------------------------------------------------------------------
@@ -334,6 +371,8 @@ class App extends BaseConfig
 	 *
 	 * The token name.
 	 *
+	 * @deprecated Use `Config\Security` $tokenName property instead of using this property.
+	 *
 	 * @var string
 	 */
 	public $CSRFTokenName = 'csrf_test_name';
@@ -344,6 +383,8 @@ class App extends BaseConfig
 	 * --------------------------------------------------------------------------
 	 *
 	 * The header name.
+	 *
+	 * @deprecated Use `Config\Security` $headerName property instead of using this property.
 	 *
 	 * @var string
 	 */
@@ -356,6 +397,8 @@ class App extends BaseConfig
 	 *
 	 * The cookie name.
 	 *
+	 * @deprecated Use `Config\Security` $cookieName property instead of using this property.
+	 *
 	 * @var string
 	 */
 	public $CSRFCookieName = 'csrf_cookie_name';
@@ -366,6 +409,8 @@ class App extends BaseConfig
 	 * --------------------------------------------------------------------------
 	 *
 	 * The number in seconds the token should expire.
+	 *
+	 * @deprecated Use `Config\Security` $expire property instead of using this property.
 	 *
 	 * @var integer
 	 */
@@ -378,6 +423,8 @@ class App extends BaseConfig
 	 *
 	 * Regenerate token on every submission?
 	 *
+	 * @deprecated Use `Config\Security` $regenerate property instead of using this property.
+	 *
 	 * @var boolean
 	 */
 	public $CSRFRegenerate = true;
@@ -388,6 +435,8 @@ class App extends BaseConfig
 	 * --------------------------------------------------------------------------
 	 *
 	 * Redirect to previous page with error on failure?
+	 *
+	 * @deprecated Use `Config\Security` $redirect property instead of using this property.
 	 *
 	 * @var boolean
 	 */
@@ -407,6 +456,8 @@ class App extends BaseConfig
 	 * Defaults to `Lax` as recommended in this link:
 	 *
 	 * @see https://portswigger.net/web-security/csrf/samesite-cookies
+	 *
+	 * @deprecated Use `Config\Security` $samesite property instead of using this property.
 	 *
 	 * @var string
 	 */

@@ -16,6 +16,7 @@ use CodeIgniter\HTTP\Files\FileCollection;
 use CodeIgniter\HTTP\Files\UploadedFile;
 use Config\App;
 use Config\Services;
+use InvalidArgumentException;
 use Locale;
 
 /**
@@ -128,8 +129,13 @@ class IncomingRequest extends Request
 	 * @param string|null $body
 	 * @param UserAgent   $userAgent
 	 */
-	public function __construct($config, URI $uri = null, $body = 'php://input', UserAgent $userAgent)
+	public function __construct($config, URI $uri = null, $body = 'php://input', UserAgent $userAgent = null)
 	{
+		if (empty($uri) || empty($userAgent))
+		{
+			throw new InvalidArgumentException('You must supply the parameters: uri, userAgent.');
+		}
+
 		// Get our body from php://input
 		if ($body === 'php://input')
 		{
@@ -270,19 +276,13 @@ class IncomingRequest extends Request
 		{
 			return true;
 		}
-
-		if ($this->hasHeader('Front-End-Https') && ! empty($this->header('Front-End-Https')->getValue()) && strtolower($this->header('Front-End-Https')->getValue()) !== 'off')
-		{
-			return true;
-		}
-
-		return false;
+		return $this->hasHeader('Front-End-Https') && ! empty($this->header('Front-End-Https')->getValue()) && strtolower($this->header('Front-End-Https')->getValue()) !== 'off';
 	}
 
 	//--------------------------------------------------------------------
 
 	/**
-	 * Fetch an item from the $_REQUEST object. This is the simplest way
+	 * Fetch an item from the $_REQUEST object or a JSON input stream. This is the simplest way
 	 * to grab data from the request object and can be used in lieu of the
 	 * other get* methods in most cases.
 	 *
@@ -294,6 +294,26 @@ class IncomingRequest extends Request
 	 */
 	public function getVar($index = null, $filter = null, $flags = null)
 	{
+		if (strpos($this->getHeaderLine('Content-Type'), 'application/json') !== false)
+		{
+			if (is_null($index))
+			{
+				return $this->getJSON();
+			}
+
+			if (is_array($index))
+			{
+				$output = [];
+				foreach ($index as $key)
+				{
+					$output[$key] = $this->getJsonVar($key, false, $filter, $flags);
+				}
+				return $output;
+			}
+
+			return $this->getJsonVar($index, false, $filter, $flags);
+		}
+
 		return $this->fetchGlobal('request', $index, $filter, $flags);
 	}
 
@@ -317,6 +337,37 @@ class IncomingRequest extends Request
 	public function getJSON(bool $assoc = false, int $depth = 512, int $options = 0)
 	{
 		return json_decode($this->body, $assoc, $depth, $options);
+	}
+
+	/**
+	 * Get a specific variable from a JSON input stream
+	 *
+	 * @param  string             $index  The variable that you want which can use dot syntax for getting specific values.
+	 * @param  boolean            $assoc  If true, return the result as an associative array.
+	 * @param  integer|null       $filter Filter Constant
+	 * @param  array|integer|null $flags  Option
+	 * @return mixed
+	 */
+	public function getJsonVar(string $index, bool $assoc = false, ?int $filter = null, $flags = null)
+	{
+		helper('array');
+
+		$data = dot_array_search($index, $this->getJSON(true));
+
+		if (! is_array($data))
+		{
+			$filter = $filter ?? FILTER_DEFAULT;
+			$flags  = is_array($flags) ? $flags : (is_numeric($flags) ? (int) $flags : 0);
+
+			return filter_var($data, $filter, $flags);
+		}
+
+		if (! $assoc)
+		{
+			return json_decode(json_encode($data));
+		}
+
+		return $data;
 	}
 
 	//--------------------------------------------------------------------
@@ -449,7 +500,7 @@ class IncomingRequest extends Request
 		// data was previously saved, we're done.
 		if (empty($_SESSION['_ci_old_input']))
 		{
-			return;
+			return null;
 		}
 
 		// Check for the value in the POST array first.
@@ -486,8 +537,8 @@ class IncomingRequest extends Request
 			}
 		}
 
-		//      // return null if requested session key not found
-		//      return null;
+		// requested session key not found
+		return null;
 	}
 
 	/**
@@ -679,7 +730,7 @@ class IncomingRequest extends Request
 		if (isset($_SERVER['SCRIPT_NAME'][0]) && pathinfo($_SERVER['SCRIPT_NAME'], PATHINFO_EXTENSION) === 'php')
 		{
 			// strip the script name from the beginning of the URI
-			if (strpos($uri, $_SERVER['SCRIPT_NAME']) === 0)
+			if (strpos($uri, $_SERVER['SCRIPT_NAME']) === 0 && strpos($uri, '/index.php') === 0)
 			{
 				$uri = (string) substr($uri, strlen($_SERVER['SCRIPT_NAME']));
 			}

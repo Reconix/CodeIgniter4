@@ -72,14 +72,8 @@ class FeatureResponse extends TestCase
 		{
 			return false;
 		}
-
 		// Empty bodies are not considered valid, unless in redirects
-		if ($status < 300 && empty($this->response->getBody()))
-		{
-			return false;
-		}
-
-		return true;
+		return ! ($status < 300 && empty($this->response->getBody()));
 	}
 
 	/**
@@ -102,6 +96,16 @@ class FeatureResponse extends TestCase
 	public function assertRedirect()
 	{
 		$this->assertTrue($this->isRedirect(), 'Response is not a redirect or RedirectResponse.');
+	}
+
+	/**
+	 * Assert that the given response was not a redirect.
+	 *
+	 * @throws Exception
+	 */
+	public function assertNotRedirect()
+	{
+		$this->assertFalse($this->isRedirect(), 'Response is an unexpected redirect or RedirectResponse.');
 	}
 
 	/**
@@ -149,6 +153,16 @@ class FeatureResponse extends TestCase
 	public function assertOK()
 	{
 		$this->assertTrue($this->isOK(), "{$this->response->getStatusCode()} is not a successful status code, or the Response has an empty body.");
+	}
+
+	/**
+	 * Asserts that the Response is considered OK.
+	 *
+	 * @throws Exception
+	 */
+	public function assertNotOK()
+	{
+		$this->assertFalse($this->isOK(), "{$this->response->getStatusCode()} is an unexpected successful status code, or the Response has body content.");
 	}
 
 	//--------------------------------------------------------------------
@@ -258,7 +272,7 @@ class FeatureResponse extends TestCase
 	public function assertCookieExpired(string $key, string $prefix = '')
 	{
 		$this->assertTrue($this->response->hasCookie($key, null, $prefix));
-		$this->assertGreaterThan(time(), $this->response->getCookie($key, $prefix)['expires']);
+		$this->assertGreaterThan(time(), $this->response->getCookie($key, $prefix)->getExpiresTimestamp());
 	}
 
 	//--------------------------------------------------------------------

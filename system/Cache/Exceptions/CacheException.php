@@ -11,6 +11,8 @@
 
 namespace CodeIgniter\Cache\Exceptions;
 
+use CodeIgniter\Exceptions\DebugTraceableTrait;
+use CodeIgniter\Exceptions\ExceptionInterface;
 use RuntimeException;
 
 /**
@@ -18,6 +20,8 @@ use RuntimeException;
  */
 class CacheException extends RuntimeException implements ExceptionInterface
 {
+	use DebugTraceableTrait;
+
 	/**
 	 * Thrown when handler has no permission to write cache.
 	 *

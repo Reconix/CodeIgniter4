@@ -22,25 +22,25 @@ You can access configuration files for your classes in several different ways.
 
 - By using the ``new`` keyword to create an instance::
 
-	// Creating new configuration object by hand
-	$config = new \Config\Pager();
+    // Creating new configuration object by hand
+    $config = new \Config\Pager();
 
 - By using the ``config()`` function::
 
-	// Get shared instance with config function
-	$config = config('Pager');
+    // Get shared instance with config function
+    $config = config('Pager');
 
-	// Access config class with namespace
-	$config = config( 'Config\\Pager' );
+    // Access config class with namespace
+    $config = config( 'Config\\Pager' );
 
-	// Creating a new object with config function
-	$config = config('Pager', false);
+    // Creating a new object with config function
+    $config = config('Pager', false);
 
 All configuration object properties are public, so you access the settings like any other property::
 
-        $config = config('Pager');
-	// Access settings as object properties
-	$pageSize = $config->perPage;
+    $config = config('Pager');
+    // Access settings as object properties
+    $pageSize = $config->perPage;
 
 If no namespace is provided, it will look for the file in all defined namespaces
 as well as **/app/Config/**.
@@ -64,14 +64,16 @@ The class should use the appropriate namespace, and it should extend
 
 Define the class and fill it with public properties that represent your settings.::
 
-    <?php namespace Config;
+    <?php
+
+    namespace Config;
 
     use CodeIgniter\Config\BaseConfig;
 
     class CustomClass extends BaseConfig
     {
-    	public $siteName  = 'My Great Site';
-    	public $siteEmail = 'webmaster@example.com';
+        public $siteName  = 'My Great Site';
+        public $siteEmail = 'webmaster@example.com';
 
     }
 
@@ -99,9 +101,9 @@ application by either renaming the template to **.env**, or by making a copy of 
 Settings are stored in **.env** files as a simple a collection of name/value pairs separated by an equal sign.
 ::
 
-	S3_BUCKET = dotenv
-	SECRET_KEY = super_secret_key
-        CI_ENVIRONMENT = development
+    S3_BUCKET = dotenv
+    SECRET_KEY = super_secret_key
+    CI_ENVIRONMENT = development
 
 When your application runs, **.env** will be loaded automatically, and the variables put
 into the environment. If a variable already exists in the environment, it will NOT be
@@ -109,9 +111,9 @@ overwritten. The loaded Environment variables are accessed using any of the foll
 ``getenv()``, ``$_SERVER``, or ``$_ENV``.
 ::
 
-	$s3_bucket = getenv('S3_BUCKET');
-	$s3_bucket = $_ENV['S3_BUCKET'];
-	$s3_bucket = $_SERVER['S3_BUCKET'];
+    $s3_bucket = getenv('S3_BUCKET');
+    $s3_bucket = $_ENV['S3_BUCKET'];
+    $s3_bucket = $_SERVER['S3_BUCKET'];
 
 .. important:: Note that your settings from the **.env** file are added to Environment Variables. As a side effect, this means that if your CodeIgniter application is (for example) generating a ``var_dump($_ENV)`` or ``phpinfo()`` (for debugging or other valid reasons) **your secure credentials are publicly exposed**.
 
@@ -163,7 +165,7 @@ the configuration class properties are left unchanged. In this usage, the prefix
 the full (case-sensitive) namespace of the class.
 ::
 
-    Config\App.CSRFProtection  = true
+    Config\App.CSRFProtection = true
     Config\App.CSRFCookieName = csrf_cookie
     Config\App.CSPEnabled = true
 
@@ -175,11 +177,26 @@ the configuration class name. If the short prefix matches the class name,
 the value from **.env** replaces the configuration file value.
 ::
 
-    app.CSRFProtection  = true
+    app.CSRFProtection = true
     app.CSRFCookieName = csrf_cookie
     app.CSPEnabled = true
 
 .. note:: When using the *short prefix* the property names must still exactly match the class defined name.
+
+Environment Variables as Replacements for Data
+==============================================
+
+It is very important to always remember that environment variables contained in your **.env** are
+**only replacements for existing data**. This means that you cannot expect to fill your ``.env`` with all
+the replacements for your configurations but have nothing to receive these replacements in the
+related configuration file(s).
+
+The ``.env`` only serves to fill or replace the values in your configuration files. That said, your
+configuration files should have a container or receiving property for those. Adding so many variables in
+your ``.env`` with nothing to contain them in the receiving end is useless.
+
+Simply put, you cannot just put ``app.myNewConfig = foo`` in your ``.env`` and expect your ``Config\App``
+to magically have that property and value at run time.
 
 Treating Environment Variables as Arrays
 ========================================
@@ -248,7 +265,9 @@ the method named for the configuration class and incorporate any returned proper
 
 A sample configuration class setup for this::
 
-    <?php namespace App\Config;
+    <?php
+
+    namespace App\Config;
 
     use CodeIgniter\Config\BaseConfig;
 
@@ -257,19 +276,24 @@ A sample configuration class setup for this::
         public $target            = 100;
         public $campaign          = "Winter Wonderland";
         public static $registrars = [
-            '\App\Models\RegionalSales';
+            '\App\Models\RegionalSales'
         ];
     }
 
 ... and the associated regional sales model might look like::
 
-    <?php namespace App\Models;
+    <?php
+
+    namespace App\Models;
 
     class RegionalSales
     {
         public static function MySalesConfig()
         {
-            return ['target' => 45, 'actual' => 72];
+            return [
+                'target' => 45,
+                'actual' => 72,
+            ];
         }
     }
 

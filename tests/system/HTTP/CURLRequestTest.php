@@ -3,10 +3,13 @@
 namespace CodeIgniter\HTTP;
 
 use CodeIgniter\Config\Services;
+use CodeIgniter\HTTP\Exceptions\HTTPException;
+use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\Mock\MockCURLRequest;
 use Config\App;
+use CURLFile;
 
-class CURLRequestTest extends \CodeIgniter\Test\CIUnitTestCase
+class CURLRequestTest extends CIUnitTestCase
 {
 	/**
 	 * @var MockCURLRequest
@@ -161,10 +164,10 @@ class CURLRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 			'headers'  => ['fruit' => 'apple'],
 		];
 		$request = $this->getRequest([]);
-		$this->assertNull($request->getHeader('fruit'));
+		$this->assertNull($request->header('fruit'));
 
 		$request = $this->getRequest($options);
-		$this->assertEquals('apple', $request->getHeader('fruit')->getValue());
+		$this->assertEquals('apple', $request->header('fruit')->getValue());
 	}
 
 	//--------------------------------------------------------------------
@@ -185,11 +188,11 @@ class CURLRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 		$request = $this->getRequest($options);
 		$request->get('example');
 		// we fill the Accept-Language header from _SERVER when no headers are defined for the request
-		$this->assertEquals('en-US', $request->getHeader('Accept-Language')->getValue());
+		$this->assertEquals('en-US', $request->header('Accept-Language')->getValue());
 		// but we skip Host header - since it would corrupt the request
-		$this->assertNull($request->getHeader('Host'));
+		$this->assertNull($request->header('Host'));
 		// and Accept-Encoding
-		$this->assertNull($request->getHeader('Accept-Encoding'));
+		$this->assertNull($request->header('Accept-Encoding'));
 	}
 
 	/**
@@ -211,9 +214,9 @@ class CURLRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 		$request = $this->getRequest($options);
 		$request->get('example');
 		// if headers for the request are defined we use them
-		$this->assertNull($request->getHeader('Accept-Language'));
-		$this->assertEquals('www.foo.com', $request->getHeader('Host')->getValue());
-		$this->assertEquals('', $request->getHeader('Accept-Encoding')->getValue());
+		$this->assertNull($request->header('Accept-Language'));
+		$this->assertEquals('www.foo.com', $request->header('Host')->getValue());
+		$this->assertEquals('', $request->header('Accept-Encoding')->getValue());
 	}
 
 	//--------------------------------------------------------------------
@@ -499,7 +502,7 @@ class CURLRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 	public function testMissingCertOption()
 	{
 		$file = 'something_obviously_bogus';
-		$this->expectException(Exceptions\HTTPException::class);
+		$this->expectException(HTTPException::class);
 
 		$this->request->request('get', 'http://example.com', [
 			'cert' => $file,
@@ -529,7 +532,7 @@ class CURLRequestTest extends \CodeIgniter\Test\CIUnitTestCase
 	public function testSSLWithBadKey()
 	{
 		$file = 'something_obviously_bogus';
-		$this->expectException(Exceptions\HTTPException::class);
+		$this->expectException(HTTPException::class);
 
 		$this->request->request('get', 'http://example.com', [
 			'verify'  => 'yes',
@@ -765,7 +768,7 @@ Transfer-Encoding: chunked\x0d\x0a\x0d\x0a<title>Update success! config</title>"
 			'Pragma',
 			'Transfer-Encoding',
 		];
-		$this->assertEquals($responseHeaderKeys, array_keys($response->getHeaders()));
+		$this->assertEquals($responseHeaderKeys, array_keys($response->headers()));
 
 		$this->assertEquals(200, $response->getStatusCode());
 	}
@@ -860,7 +863,7 @@ Transfer-Encoding: chunked\x0d\x0a\x0d\x0a<title>Update success! config</title>"
 				'hi',
 				'there',
 			],
-			'afile' => new \CURLFile(__FILE__),
+			'afile' => new CURLFile(__FILE__),
 		];
 		$this->request->request('POST', '/post', [
 			'multipart' => $params,
@@ -893,7 +896,7 @@ Transfer-Encoding: chunked\x0d\x0a\x0d\x0a<title>Update success! config</title>"
 			$this->request->curl_options[CURLOPT_POSTFIELDS]
 		);
 
-		$params['afile'] = new \CURLFile(__FILE__);
+		$params['afile'] = new CURLFile(__FILE__);
 
 		$this->request->setForm($params, true)->post('/post');
 

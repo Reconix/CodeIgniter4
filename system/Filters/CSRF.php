@@ -13,6 +13,7 @@ namespace CodeIgniter\Filters;
 
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\Response;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\Security\Exceptions\SecurityException;
 use Config\Services;
@@ -53,11 +54,11 @@ class CSRF implements FilterInterface
 
 		try
 		{
-			$security->CSRFVerify($request);
+			$security->verify($request);
 		}
 		catch (SecurityException $e)
 		{
-			if (config('App')->CSRFRedirect && ! $request->isAJAX())
+			if ($security->shouldRedirect() && ! $request->isAJAX())
 			{
 				return redirect()->back()->with('error', $e->getMessage());
 			}
@@ -67,12 +68,11 @@ class CSRF implements FilterInterface
 	}
 
 	//--------------------------------------------------------------------
-
 	/**
 	 * We don't have anything to do here.
 	 *
 	 * @param RequestInterface|IncomingRequest             $request
-	 * @param ResponseInterface|\CodeIgniter\HTTP\Response $response
+	 * @param ResponseInterface|Response $response
 	 * @param array|null                                   $arguments
 	 *
 	 * @return mixed

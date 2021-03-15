@@ -4,13 +4,15 @@ namespace CodeIgniter\Database\Live;
 
 use CodeIgniter\Database\BasePreparedQuery;
 use CodeIgniter\Database\Query;
-use CodeIgniter\Test\CIDatabaseTestCase;
+use CodeIgniter\Test\CIUnitTestCase;
+use CodeIgniter\Test\DatabaseTestTrait;
 
 /**
  * @group DatabaseLive
  */
-class PreparedQueryTest extends CIDatabaseTestCase
+class PreparedQueryTest extends CIUnitTestCase
 {
+	use DatabaseTestTrait;
 
 	protected $refresh = true;
 	protected $seed    = 'Tests\Support\Database\Seeds\CITestSeeder';
@@ -38,7 +40,7 @@ class PreparedQueryTest extends CIDatabaseTestCase
 			$placeholders = '$1, $2';
 		}
 
-		if ($this->db->DBDriver === 'Sqlsrv')
+		if ($this->db->DBDriver === 'SQLSRV')
 		{
 			$database = $this->db->getDatabase();
 			$expected = "INSERT INTO {$ec}{$database}{$ec}.{$ec}dbo{$ec}.{$ec}{$pre}user{$ec} ({$ec}name{$ec},{$ec}email{$ec}) VALUES ({$placeholders})";
@@ -114,6 +116,4 @@ class PreparedQueryTest extends CIDatabaseTestCase
 
 		$query->close();
 	}
-
-	//--------------------------------------------------------------------
 }

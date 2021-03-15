@@ -1,11 +1,14 @@
 <?php
 namespace CodeIgniter\I18n;
 
+use CodeIgniter\I18n\Exceptions\I18nException;
+use CodeIgniter\Test\CIUnitTestCase;
 use DateTime;
 use DateTimeZone;
 use IntlDateFormatter;
+use Locale;
 
-class TimeTest extends \CodeIgniter\Test\CIUnitTestCase
+class TimeTest extends CIUnitTestCase
 {
 
 	protected function setUp(): void
@@ -13,7 +16,7 @@ class TimeTest extends \CodeIgniter\Test\CIUnitTestCase
 		parent::setUp();
 
 		helper('date');
-		\Locale::setDefault('America/Chicago');
+		Locale::setDefault('America/Chicago');
 	}
 
 	public function testNewTimeNow()
@@ -195,6 +198,16 @@ class TimeTest extends \CodeIgniter\Test\CIUnitTestCase
 		$time = Time::createFromFormat('F j, Y', 'January 15, 2017', $tz);
 
 		$this->assertCloseEnoughString(date('2017-01-15 H:i:s'), $time->toDateTimeString());
+	}
+
+	public function testCreateFromFormatWithInvalidFormat()
+	{
+		$format = 'foobar';
+
+		$this->expectException(I18nException::class);
+		$this->expectExceptionMessage(lang('Time.invalidFormat', [$format]));
+
+		$time = Time::createFromFormat($format, 'America/Chicago');
 	}
 
 	public function testCreateFromTimestamp()

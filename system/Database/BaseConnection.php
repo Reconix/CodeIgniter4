@@ -289,6 +289,13 @@ abstract class BaseConnection implements ConnectionInterface
 	 */
 	protected $aliasedTables = [];
 
+	/**
+	 * Query Class
+	 *
+	 * @var string
+	 */
+	protected $queryClass = 'CodeIgniter\\Database\\Query';
+
 	//--------------------------------------------------------------------
 
 	/**
@@ -301,6 +308,13 @@ abstract class BaseConnection implements ConnectionInterface
 		foreach ($params as $key => $value)
 		{
 			$this->$key = $value;
+		}
+
+		$queryClass = str_replace('Connection', 'Query', static::class);
+
+		if (class_exists($queryClass))
+		{
+			$this->queryClass = $queryClass;
 		}
 	}
 
@@ -328,6 +342,7 @@ abstract class BaseConnection implements ConnectionInterface
 		//--------------------------------------------------------------------
 
 		$this->connectTime = microtime(true);
+		$connectionErrors  = [];
 
 		try
 		{
@@ -336,6 +351,7 @@ abstract class BaseConnection implements ConnectionInterface
 		}
 		catch (Throwable $e)
 		{
+			$connectionErrors[] = sprintf('Main connection [%s]: %s', $this->DBDriver, $e->getMessage());
 			log_message('error', 'Error connecting to the database: ' . $e->getMessage());
 		}
 
@@ -346,7 +362,7 @@ abstract class BaseConnection implements ConnectionInterface
 			if (! empty($this->failover) && is_array($this->failover))
 			{
 				// Go over all the failovers
-				foreach ($this->failover as $failover)
+				foreach ($this->failover as $index => $failover)
 				{
 					// Replace the current settings with those of the failover
 					foreach ($failover as $key => $val)
@@ -364,6 +380,7 @@ abstract class BaseConnection implements ConnectionInterface
 					}
 					catch (Throwable $e)
 					{
+						$connectionErrors[] = sprintf('Failover #%d [%s]: %s', ++$index, $this->DBDriver, $e->getMessage());
 						log_message('error', 'Error connecting to the database: ' . $e->getMessage());
 					}
 
@@ -378,7 +395,11 @@ abstract class BaseConnection implements ConnectionInterface
 			// We still don't have a connection?
 			if (! $this->connID)
 			{
-				throw new DatabaseException('Unable to connect to the database.');
+				throw new DatabaseException(sprintf(
+					'Unable to connect to the database.%s%s',
+					PHP_EOL,
+					implode(PHP_EOL, $connectionErrors)
+				));
 			}
 		}
 
@@ -578,8 +599,6 @@ abstract class BaseConnection implements ConnectionInterface
 	 */
 	abstract protected function execute(string $sql);
 
-	//--------------------------------------------------------------------
-
 	/**
 	 * Orchestrates a query against the database. Queries must use
 	 * Database\Statement objects to store the query and build it.
@@ -593,16 +612,19 @@ abstract class BaseConnection implements ConnectionInterface
 	 * @param boolean $setEscapeFlags
 	 * @param string  $queryClass
 	 *
-	 * @return BaseResult|Query|false
+	 * @return BaseResult|Query|boolean
+	 *
+	 * @todo BC set $queryClass default as null in 4.1
 	 */
-	public function query(string $sql, $binds = null, bool $setEscapeFlags = true, string $queryClass = 'CodeIgniter\\Database\\Query')
+	public function query(string $sql, $binds = null, bool $setEscapeFlags = true, string $queryClass = '')
 	{
+		$queryClass = $queryClass ?: $this->queryClass;
+
 		if (empty($this->connID))
 		{
 			$this->initialize();
 		}
 
-		$resultClass = str_replace('Connection', 'Result', get_class($this));
 		/**
 		 * @var Query $query
 		 */
@@ -659,7 +681,7 @@ abstract class BaseConnection implements ConnectionInterface
 				Events::trigger('DBQuery', $query);
 			}
 
-			return new $resultClass($this->connID, $this->resultID);
+			return false;
 		}
 
 		$query->setDuration($startTime);
@@ -673,7 +695,20 @@ abstract class BaseConnection implements ConnectionInterface
 		// If $pretend is true, then we just want to return
 		// the actual query object here. There won't be
 		// any results to return.
-		return $this->pretend ? $query : new $resultClass($this->connID, $this->resultID);
+		if ($this->pretend)
+		{
+			return $query;
+		}
+
+		// resultID is not false, so it must be successful
+		if ($this->isWriteType($sql))
+		{
+			return true;
+		}
+
+		// query is not write-type, so it must be read-type query; return QueryResult
+		$resultClass = str_replace('Connection', 'Result', get_class($this));
+		return new $resultClass($this->connID, $this->resultID);
 	}
 
 	//--------------------------------------------------------------------
@@ -1728,6 +1763,19 @@ abstract class BaseConnection implements ConnectionInterface
 		$this->dataCache = [];
 
 		return $this;
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Determines if the statement is a write-type query or not.
+	 *
+	 * @param  string $sql
+	 * @return boolean
+	 */
+	public function isWriteType($sql): bool
+	{
+		return (bool) preg_match('/^\s*"?(SET|INSERT|UPDATE|DELETE|REPLACE|CREATE|DROP|TRUNCATE|LOAD|COPY|ALTER|RENAME|GRANT|REVOKE|LOCK|UNLOCK|REINDEX|MERGE)\s/i', $sql);
 	}
 
 	//--------------------------------------------------------------------

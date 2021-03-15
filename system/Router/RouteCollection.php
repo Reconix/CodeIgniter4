@@ -17,6 +17,7 @@ use CodeIgniter\HTTP\Request;
 use CodeIgniter\Router\Exceptions\RouterException;
 use Config\Modules;
 use Config\Services;
+use InvalidArgumentException;
 
 /**
  * Class RouteCollection
@@ -988,8 +989,13 @@ class RouteCollection implements RouteCollectionInterface
 	 *
 	 * @return RouteCollectionInterface
 	 */
-	public function match(array $verbs = [], string $from, $to, array $options = null): RouteCollectionInterface
+	public function match(array $verbs = [], string $from = '', $to = '', array $options = null): RouteCollectionInterface
 	{
+		if (empty($from) || empty($to))
+		{
+			throw new InvalidArgumentException('You must supply the parameters: from, to.');
+		}
+
 		foreach ($verbs as $verb)
 		{
 			$verb = strtolower($verb);
@@ -1412,21 +1418,17 @@ class RouteCollection implements RouteCollectionInterface
 		}
 
 		//If is redirect, No processing
-		if (! isset($options['redirect']))
+		if (! isset($options['redirect']) && is_string($to))
 		{
-			if (is_string($to))
-			{
-				// If no namespace found, add the default namespace
-				if (strpos($to, '\\') === false || strpos($to, '\\') > 0)
+			// If no namespace found, add the default namespace
+			if (strpos($to, '\\') === false || strpos($to, '\\') > 0)
 				{
 					$namespace = $options['namespace'] ?? $this->defaultNamespace;
 					$to        = trim($namespace, '\\') . '\\' . $to;
-				}
-
-				// Always ensure that we escape our namespace so we're not pointing to
-				// \CodeIgniter\Routes\Controller::method.
-				$to = '\\' . ltrim($to, '\\');
 			}
+			// Always ensure that we escape our namespace so we're not pointing to
+			// \CodeIgniter\Routes\Controller::method.
+			$to = '\\' . ltrim($to, '\\');
 		}
 
 		$name = $options['as'] ?? $from;

@@ -96,21 +96,17 @@ class CreateDatabase extends BaseCommand
 				$config = config('Database');
 				$group  = ENVIRONMENT === 'testing' ? 'tests' : $config->defaultGroup;
 				$ext    = $params['ext'] ?? CLI::getOption('ext') ?? 'db';
-
 				if (! in_array($ext, ['db', 'sqlite'], true))
 				{
 					$ext = CLI::prompt('Please choose a valid file extension', ['db', 'sqlite']); // @codeCoverageIgnore
 				}
-
-				if (strpos($name, ':memory:') === false)
+				if ($name !== ':memory:')
 				{
 					$name = str_replace(['.db', '.sqlite'], '', $name) . ".{$ext}";
 				}
-
 				$config->{$group}['DBDriver'] = 'SQLite3';
 				$config->{$group}['database'] = $name;
-
-				if (strpos($name, ':memory:') === false)
+				if ($name !== ':memory:')
 				{
 					$dbName = strpos($name, DIRECTORY_SEPARATOR) === false ? WRITEPATH . $name : $name;
 
@@ -124,14 +120,12 @@ class CreateDatabase extends BaseCommand
 
 					unset($dbName);
 				}
-
 				// Connect to new SQLite3 to create new database,
 				// then reset the altered Config\Database instance
 				$db = Database::connect(null, false);
 				$db->connect();
 				Factories::reset('config');
-
-				if (! is_file($db->getDatabase()) && strpos($name, ':memory:') === false)
+				if (! is_file($db->getDatabase()) && $name !== ':memory:')
 				{
 					// @codeCoverageIgnoreStart
 					CLI::error('Database creation failed.', 'light_gray', 'red');
@@ -141,17 +135,13 @@ class CreateDatabase extends BaseCommand
 					// @codeCoverageIgnoreEnd
 				}
 			}
-			else
+			elseif (! Database::forge()->createDatabase($name))
 			{
-				if (! Database::forge()->createDatabase($name))
-				{
-					// @codeCoverageIgnoreStart
-					CLI::error('Database creation failed.', 'light_gray', 'red');
-					CLI::newLine();
-
-					return;
-					// @codeCoverageIgnoreEnd
-				}
+				// @codeCoverageIgnoreStart
+				CLI::error('Database creation failed.', 'light_gray', 'red');
+				CLI::newLine();
+				return;
+				// @codeCoverageIgnoreEnd
 			}
 
 			CLI::write("Database \"{$name}\" successfully created.", 'green');

@@ -151,7 +151,7 @@ class BaseBuilder
 	/**
 	 * A reference to the database connection.
 	 *
-	 * @var ConnectionInterface
+	 * @var BaseConnection
 	 */
 	protected $db;
 
@@ -263,6 +263,7 @@ class BaseBuilder
 			throw new DatabaseException('A table must be specified when creating a new Query Builder.');
 		}
 
+		/** @var BaseConnection $db */
 		$this->db = $db;
 
 		$this->tableName = $tableName;
@@ -285,7 +286,7 @@ class BaseBuilder
 	/**
 	 * Returns the current database connection
 	 *
-	 * @return ConnectionInterface
+	 * @return ConnectionInterface|BaseConnection
 	 */
 	public function db(): ConnectionInterface
 	{
@@ -372,7 +373,10 @@ class BaseBuilder
 		}
 
 		// If the escape value was not set, we will base it on the global setting
-		is_bool($escape) || $escape = $this->db->protectIdentifiers;
+		if (! is_bool($escape))
+		{
+			$escape = $this->db->protectIdentifiers;
+		}
 
 		foreach ($select as $val)
 		{
@@ -656,7 +660,10 @@ class BaseBuilder
 		// in the protectIdentifiers to know whether to add a table prefix
 		$this->trackAliases($table);
 
-		is_bool($escape) || $escape = $this->db->protectIdentifiers;
+		if (! is_bool($escape))
+		{
+			$escape = $this->db->protectIdentifiers;
+		}
 
 		if (! $this->hasOperator($cond))
 		{
@@ -776,7 +783,10 @@ class BaseBuilder
 		}
 
 		// If the escape value was not set will base it on the global setting
-		is_bool($escape) || $escape = $this->db->protectIdentifiers;
+		if (! is_bool($escape))
+		{
+			$escape = $this->db->protectIdentifiers;
+		}
 
 		foreach ($key as $k => $v)
 		{
@@ -1036,7 +1046,10 @@ class BaseBuilder
 			// @codeCoverageIgnoreEnd
 		}
 
-		is_bool($escape) || $escape = $this->db->protectIdentifiers;
+		if (! is_bool($escape))
+		{
+			$escape = $this->db->protectIdentifiers;
+		}
 
 		$ok = $key;
 
@@ -1319,24 +1332,22 @@ class BaseBuilder
 	/**
 	 * Platform independent LIKE statement builder.
 	 *
-	 * @param string  $prefix
-	 * @param string  $column
-	 * @param string  $not
-	 * @param string  $bind
-	 * @param boolean $insensitiveSearch
+	 * @param string|null $prefix
+	 * @param string      $column
+	 * @param string|null $not
+	 * @param string      $bind
+	 * @param boolean     $insensitiveSearch
 	 *
 	 * @return string     $like_statement
 	 */
-	protected function _like_statement(string $prefix = null, string $column, string $not = null, string $bind, bool $insensitiveSearch = false): string
+	protected function _like_statement(?string $prefix, string $column, ?string $not, string $bind, bool $insensitiveSearch = false): string
 	{
-		$likeStatement = "{$prefix} {$column} {$not} LIKE :{$bind}:";
-
 		if ($insensitiveSearch === true)
 		{
-			$likeStatement = "{$prefix} LOWER({$column}) {$not} LIKE :{$bind}:";
+			return "{$prefix} LOWER({$column}) {$not} LIKE :{$bind}:";
 		}
 
-		return $likeStatement;
+		return "{$prefix} {$column} {$not} LIKE :{$bind}:";
 	}
 
 	//--------------------------------------------------------------------
@@ -1546,7 +1557,10 @@ class BaseBuilder
 	 */
 	public function groupBy($by, bool $escape = null)
 	{
-		is_bool($escape) || $escape = $this->db->protectIdentifiers;
+		if (! is_bool($escape))
+		{
+			$escape = $this->db->protectIdentifiers;
+		}
 
 		if (is_string($by))
 		{
@@ -1638,7 +1652,10 @@ class BaseBuilder
 			$direction = in_array($direction, ['ASC', 'DESC'], true) ? ' ' . $direction : '';
 		}
 
-		is_bool($escape) || $escape = $this->db->protectIdentifiers;
+		if (! is_bool($escape))
+		{
+			$escape = $this->db->protectIdentifiers;
+		}
 
 		if ($escape === false)
 		{
@@ -1679,12 +1696,12 @@ class BaseBuilder
 	/**
 	 * LIMIT
 	 *
-	 * @param integer $value  LIMIT value
-	 * @param integer $offset OFFSET value
+	 * @param integer|null $value  LIMIT value
+	 * @param integer|null $offset OFFSET value
 	 *
 	 * @return $this
 	 */
-	public function limit(int $value = null, ?int $offset = 0)
+	public function limit(?int $value = null, ?int $offset = 0)
 	{
 		if (! is_null($value))
 		{
@@ -1882,7 +1899,7 @@ class BaseBuilder
 	 * "Count All" query
 	 *
 	 * Generates a platform-specific query string that counts all records in
-	 * the specified database
+	 * the particular table
 	 *
 	 * @param boolean $reset Are we want to clear query builder values?
 	 *
@@ -2082,9 +2099,8 @@ class BaseBuilder
 				{
 					throw new DatabaseException('insertBatch() called with no data');
 				}
-				// @codeCoverageIgnoreStart
-				return false;
-				// @codeCoverageIgnoreEnd
+
+				return false; // @codeCoverageIgnore
 			}
 
 			$this->setInsertBatch($set, '', $escape);
@@ -2100,7 +2116,7 @@ class BaseBuilder
 
 			if ($this->testMode)
 			{
-				++ $affectedRows;
+				++$affectedRows;
 			}
 			else
 			{
@@ -2174,6 +2190,7 @@ class BaseBuilder
 			ksort($row); // puts $row in the same order as our keys
 
 			$clean = [];
+
 			foreach ($row as $k => $value)
 			{
 				$clean[] = ':' . $this->setBind($k, $value, $escape) . ':';
@@ -2226,8 +2243,6 @@ class BaseBuilder
 		return $this->compileFinalQuery($sql);
 	}
 
-	//--------------------------------------------------------------------
-
 	/**
 	 * Insert
 	 *
@@ -2238,7 +2253,7 @@ class BaseBuilder
 	 *
 	 * @throws DatabaseException
 	 *
-	 * @return BaseResult|Query|false
+	 * @return Query|boolean
 	 */
 	public function insert(array $set = null, bool $escape = null)
 	{
@@ -2319,8 +2334,6 @@ class BaseBuilder
 		return 'INSERT ' . $this->compileIgnore('insert') . 'INTO ' . $table . ' (' . implode(', ', $keys) . ') VALUES (' . implode(', ', $unescapedKeys) . ')';
 	}
 
-	//--------------------------------------------------------------------
-
 	/**
 	 * Replace
 	 *
@@ -2384,7 +2397,7 @@ class BaseBuilder
 	 * Groups tables in FROM clauses if needed, so there is no confusion
 	 * about operator precedence.
 	 *
-	 * Note: This is only used (and overridden) by MySQL and CUBRID.
+	 * Note: This is only used (and overridden) by MySQL and SQLSRV.
 	 *
 	 * @return string
 	 */
@@ -2471,7 +2484,7 @@ class BaseBuilder
 
 			$result = $this->db->query($sql, $this->binds, false);
 
-			if ($result->resultID !== false)
+			if ($result !== false)
 			{
 				// Clear our binds so we don't eat up memory
 				$this->binds = [];
@@ -2690,7 +2703,10 @@ class BaseBuilder
 			return null;
 		}
 
-		is_bool($escape) || $escape = $this->db->protectIdentifiers;
+		if (! is_bool($escape))
+		{
+			$escape = $this->db->protectIdentifiers;
+		}
 
 		foreach ($key as $v)
 		{
@@ -2803,9 +2819,8 @@ class BaseBuilder
 	 */
 	public function getCompiledDelete(bool $reset = true): string
 	{
-		$table = $this->QBFrom[0];
-
-		$sql = $this->delete($table, null, $reset);
+		$sql = $this->testMode()->delete('', null, $reset);
+		$this->testMode(false);
 
 		return $this->compileFinalQuery($sql);
 	}
@@ -2821,7 +2836,7 @@ class BaseBuilder
 	 * @param integer $limit     The limit clause
 	 * @param boolean $resetData
 	 *
-	 * @return mixed
+	 * @return string|boolean
 	 * @throws DatabaseException
 	 */
 	public function delete($where = '', int $limit = null, bool $resetData = true)
@@ -3047,16 +3062,14 @@ class BaseBuilder
 	 */
 	protected function compileIgnore(string $statement)
 	{
-		$sql = '';
-
 		if ($this->QBIgnore &&
 			isset($this->supportedIgnoreStatements[$statement])
 		)
 		{
-			$sql = trim($this->supportedIgnoreStatements[$statement]) . ' ';
+			return trim($this->supportedIgnoreStatements[$statement]) . ' ';
 		}
 
-		return $sql;
+		return '';
 	}
 
 	//--------------------------------------------------------------------
@@ -3279,7 +3292,7 @@ class BaseBuilder
 				$i = 0;
 				foreach ($out[$val] as $data)
 				{
-					$array[$i ++][$val] = $data;
+					$array[$i++][$val] = $data;
 				}
 			}
 		}
@@ -3485,16 +3498,17 @@ class BaseBuilder
 
 		if (! array_key_exists($key, $this->bindsKeyCount))
 		{
-			$this->bindsKeyCount[$key] = 0;
+			$this->bindsKeyCount[$key] = 1;
 		}
+
 		$count = $this->bindsKeyCount[$key]++;
 
-		$this->binds[$key . $count] = [
+		$this->binds[$key . '.' . $count] = [
 			$value,
 			$escape,
 		];
 
-		return $key . $count;
+		return $key . '.' . $count;
 	}
 
 	//--------------------------------------------------------------------

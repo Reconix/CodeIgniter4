@@ -41,14 +41,14 @@ Entity itself at **app/Entities/User.php**.
 ::
 
     <?php
-    
+
     namespace App\Entities;
 
     use CodeIgniter\Entity;
 
     class User extends Entity
     {
-        //
+        // ...
     }
 
 At its simplest, this is all you need to do, though we'll make it more useful in a minute.
@@ -59,7 +59,7 @@ Create the Model
 Create the model first at **app/Models/UserModel.php** so that we can interact with it::
 
     <?php
-    
+
     namespace App\Models;
 
     use CodeIgniter\Model;
@@ -113,6 +113,9 @@ of what columns have changed since the object was created or pulled from the dat
 When the User is passed to the model's **save()** method, it automatically takes care of reading the  properties
 and saving any changes to columns listed in the model's **$allowedFields** property. It also knows whether to create
 a new row, or update an existing one.
+
+.. note:: When we are making a call to the ``insert()`` all the values from Entity are passed to the method, but when we
+    call the ``update()``, then only values that have changed are passed.
 
 Filling Properties Quickly
 --------------------------
@@ -194,7 +197,7 @@ Here's an updated User entity to provide some examples of how this could be used
 
 The first thing to notice is the name of the methods we've added. For each one, the class expects the snake_case
 column name to be converted into PascalCase, and prefixed with either ``set`` or ``get``. These methods will then
-be automatically called whenever you set or retrieve the class property using the direct syntax (i.e. $user->email).
+be automatically called whenever you set or retrieve the class property using the direct syntax (i.e., $user->email).
 The methods do not need to be public unless you want them accessed from other classes. For example, the ``created_at``
 class property will be accessed through the ``setCreatedAt()`` and ``getCreatedAt()`` methods.
 
@@ -328,7 +331,7 @@ This option should be an array where the key is the name of the class property, 
 should be cast to. Casting only affects when values are read. No conversions happen that affect the permanent value in
 either the entity or the database. Properties can be cast to any of the following data types:
 **integer**, **float**, **double**, **string**, **boolean**, **object**, **array**, **datetime**, and **timestamp**.
-Add a question mark at the beginning of type to mark property as nullable, i.e. **?string**, **?integer**.
+Add a question mark at the beginning of type to mark property as nullable, i.e., **?string**, **?integer**.
 
 For example, if you had a User entity with an **is_banned** property, you can cast it as a boolean::
 
@@ -373,8 +376,8 @@ the value whenever the property is set::
     {
         protected $casts = [
             'options'        => 'array',
-	    'options_object' => 'json',
-	    'options_array'  => 'json-array',
+            'options_object' => 'json',
+            'options_array'  => 'json-array',
         ];
     }
 
@@ -415,8 +418,112 @@ Stored in the database as "red,yellow,green"::
 
 .. note:: Casting as CSV uses PHP's internal ``implode`` and ``explode`` methods and assumes all values are string-safe and free of commas. For more complex data casts try ``array`` or ``json``.
 
+Custom casting
+--------------
+
+You can define your own conversion types for getting and setting data.
+
+At first you need to create a handler class for your type.
+Let's say the class will be located in the 'app/Entity/Cast' directory::
+
+    <?php
+
+    namespace App\Entity\Cast
+
+    //The class must inherit the CodeIgniter\EntityCast\AbstractCast class
+    class CastBase64 extends \CodeIgniter\EntityCast\AbstractCast
+    {
+        public static function get($value, array $params = [])
+        {
+            return base64_decode($value);
+        }
+
+        public static function set($value, array $params = [])
+        {
+            return base64_encode($value);
+        }
+    }
+
+Now you need to register it::
+
+    <?php
+
+    namespace App\Entities;
+
+    use CodeIgniter\Entity;
+
+    class MyEntity extends Entity
+    {
+        // Specifying the type for the field
+        protected $casts = [
+            'key' => 'base64',
+        ];
+
+        //Bind the type to the handler
+        protected $castHandlers = [
+            'base64' => 'App\Entity\Cast\CastBase64',
+        ];
+    }
+
+    //...
+
+    $entity->key = 'test'; // dGVzdA==
+    echo $entity->key;     // test
+
+
+If you don't need to change values when getting or setting a value. Then just don't implement the appropriate method::
+
+    class CastBase64 extends \CodeIgniter\EntityCast\AbstractCast
+    {
+        public static function get($value, array $params = [])
+        {
+            return base64_decode($value);
+        }
+    }
+
+
+**Parameters**
+
+In some cases, one type is not enough. In this situation, you can use additional parameters.
+Additional parameters are indicated in square brackets and listed with a comma.
+
+**type[param1, param2]**
+
+::
+
+    //Defining a type with parameters
+    protected $casts = [
+        'some_attribute' => 'class[App\SomeClass, param2, param3]',
+    ];
+
+    //Bind the type to the handler
+    protected $castHandlers = [
+        'class' => 'SomeHandler',
+    ];
+
+    class SomeHandler extends \CodeIgniter\EntityCast\AbstractCast
+    {
+        public static function get($value, array $params = [])
+        {
+            var_dump($params);
+            // array(3) {
+            //   [0]=>
+            //   string(13) "App\SomeClass"
+            //   [1]=>
+            //   string(6) "param2"
+            //   [2]=>
+            //   string(6) "param3"
+            // }
+        }
+    }
+
+.. note:: If the casting type is marked as nullable ``?bool`` and the passed value is not null, then the parameter with
+    the value ``nullable`` will be passed to the casting type handler.
+    If casting type has predefined parameters, then ``nullable`` will be added to the end of the list.
+
+
 Checking for Changed Attributes
--------------------------------
+===============================
 
 You can check if an Entity attribute has changed since it was created. The only parameter is the name of the
 attribute to check::
